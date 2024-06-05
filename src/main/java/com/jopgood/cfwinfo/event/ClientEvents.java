@@ -2,6 +2,7 @@ package com.jopgood.cfwinfo.event;
 
 import com.jopgood.cfwinfo.CfwInfo;
 import com.jopgood.cfwinfo.client.InformationHudOverlay;
+import com.jopgood.cfwinfo.client.JetpackHudOverlay;
 import com.jopgood.cfwinfo.config.ClientConfig;
 import com.jopgood.cfwinfo.util.KeyBinding;
 import com.mojang.logging.LogUtils;
@@ -46,7 +47,8 @@ public class ClientEvents {
 		public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
 			LOGGER.info("Gui Rendered...");
 			event.registerAboveAll("info", InformationHudOverlay.INFO_OVERLAY);
-		}
+			event.registerAboveAll("tank_info", JetpackHudOverlay.TANK_SPRITE);
+		}	
 	}
 	
 }

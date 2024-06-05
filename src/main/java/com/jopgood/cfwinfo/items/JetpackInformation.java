@@ -16,7 +16,7 @@ public class JetpackInformation {
         List<Component> newTooltip = new ArrayList<>();
         
         if (JetpackDataManager.isWearingJetpack(player)) {
-        	
+        	        	
             ItemStack jetpackItem = player.getItemBySlot(EquipmentSlot.CHEST);
             double fuelLevel = JetpackDataManager.getFuelLevel(jetpackItem);
             double waterLevel = JetpackDataManager.getWaterLevel(jetpackItem);

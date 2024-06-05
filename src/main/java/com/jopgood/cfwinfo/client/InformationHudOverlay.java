@@ -29,7 +29,7 @@ public class InformationHudOverlay {
 
     public static final IGuiOverlay INFO_OVERLAY = InformationHudOverlay::renderOverlay;
     private static int hoverTicks = 0;
-    private static List<Component> tooltip = new ArrayList<>();
+    private static final List<Component> tooltip = new ArrayList<>();
     private static final String spacing = "    ";
     private static final Component componentSpacing = Component.literal(spacing);
     
@@ -39,20 +39,22 @@ public class InformationHudOverlay {
     public static void renderOverlay(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height) {
     	
     	Boolean renderEnabled = ClientConfig.INFORMATION_ENABLED.get();
+        Boolean simpleEnabled = ClientConfig.SIMPLIFIED.get();
+
     	Minecraft mc = Minecraft.getInstance();
     	
     	boolean wearingGoggles = GogglesItem.isWearingGoggles(mc.player);
     	
-    	if (!renderEnabled || !wearingGoggles) { // Check if rendering is disabled
+    	if (!renderEnabled || !wearingGoggles || simpleEnabled) { // Check if rendering is disabled
             wasRenderEnabled = false; // Update the previous state
             return; // If disabled, don't render anything
         }
 
         // Check if the overlay has just been re-enabled
-        if (renderEnabled && !wasRenderEnabled) {
+        if (!wasRenderEnabled) {
             hoverTicks = 0; // Reset hoverTicks for the fade-in effect
         }
-        
+
         wasRenderEnabled = renderEnabled; // Update the previous state
     	
         CClient cfg = AllConfigs.client();

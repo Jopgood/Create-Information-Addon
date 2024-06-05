@@ -2,7 +2,6 @@ package com.jopgood.cfwinfo;
 
 import org.slf4j.Logger;
 
-import com.jopgood.cfwinfo.client.CustomIHaveGoggleInformation;
 import com.jopgood.cfwinfo.config.ClientConfig;
 import com.jopgood.cfwinfo.items.JetpackInformation;
 import com.mojang.logging.LogUtils;
@@ -18,7 +17,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod(CfwInfo.MODID)
-public class CfwInfo implements CustomIHaveGoggleInformation {
+public class CfwInfo {
 	
     public static final String MODID = "cfwinfo";
 
@@ -30,7 +29,7 @@ public class CfwInfo implements CustomIHaveGoggleInformation {
         MinecraftForge.EVENT_BUS.register(this);
         
         
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "csainfo-client.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "cfwinfo-client.toml");
     }
     
     
