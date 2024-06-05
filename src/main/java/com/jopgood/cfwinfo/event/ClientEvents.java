@@ -16,7 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-
+@SuppressWarnings("unused")
 public class ClientEvents {
 	
 	private static final Logger LOGGER = LogUtils.getLogger();
@@ -31,12 +31,11 @@ public class ClientEvents {
             }
         }
     }
-	
-	
-	
+
+
 	@Mod.EventBusSubscriber(modid = CfwInfo.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 	public static class ClientModBusEvents {
-		
+
 		@SubscribeEvent
         public static void onKeyRegister(RegisterKeyMappingsEvent event) {
             event.register(KeyBinding.INFO_KEY);
