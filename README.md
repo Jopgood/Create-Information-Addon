@@ -1,4 +1,4 @@
-<div style="text-align: center;">
+<div align="center">
     <img alt="logo" src="https://i.imgur.com/calDomL.png" height=300 width=300 style="display: block; margin: 0 auto;">
 </div>
 <h1 align="center">Create: Fuel & Water Information
