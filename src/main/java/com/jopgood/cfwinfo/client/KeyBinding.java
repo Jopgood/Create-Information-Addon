@@ -1,4 +1,4 @@
-package com.jopgood.cfwinfo.util;
+package com.jopgood.cfwinfo.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;

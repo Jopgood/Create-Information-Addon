@@ -1,4 +1,4 @@
-package com.jopgood.cfwinfo.data;
+package com.jopgood.cfwinfo.common.data;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;

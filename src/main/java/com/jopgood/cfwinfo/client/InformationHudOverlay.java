@@ -3,7 +3,7 @@ package com.jopgood.cfwinfo.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jopgood.cfwinfo.config.ClientConfig;
+import com.jopgood.cfwinfo.common.config.CommonConfig;
 import com.jopgood.cfwinfo.items.JetpackInformation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllItems;
@@ -38,8 +38,8 @@ public class InformationHudOverlay {
 
     public static void renderOverlay(ForgeGui gui, GuiGraphics graphics, float partialTicks, int width, int height) {
     	
-    	Boolean renderEnabled = ClientConfig.INFORMATION_ENABLED.get();
-        Boolean simpleEnabled = ClientConfig.SIMPLIFIED.get();
+    	Boolean renderEnabled = CommonConfig.FEATURE_ENABLED.get();
+        Boolean simpleEnabled = CommonConfig.SIMPLIFIED.get();
 
     	Minecraft mc = Minecraft.getInstance();
     	

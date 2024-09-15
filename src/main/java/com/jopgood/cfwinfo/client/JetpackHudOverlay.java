@@ -1,8 +1,8 @@
 package com.jopgood.cfwinfo.client;
 
 import com.jopgood.cfwinfo.CfwInfo;
-import com.jopgood.cfwinfo.config.ClientConfig;
-import com.jopgood.cfwinfo.data.JetpackDataManager;
+import com.jopgood.cfwinfo.common.config.CommonConfig;
+import com.jopgood.cfwinfo.common.data.JetpackDataManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
@@ -38,8 +38,8 @@ public class JetpackHudOverlay {
             return;
         }
 
-        Boolean renderEnabled = ClientConfig.INFORMATION_ENABLED.get();
-        Boolean simpleEnabled = ClientConfig.SIMPLIFIED.get();
+        Boolean renderEnabled = CommonConfig.FEATURE_ENABLED.get();
+        Boolean simpleEnabled = CommonConfig.SIMPLIFIED.get();
 
         boolean wearingGoggles = GogglesItem.isWearingGoggles(mc.player);
 
