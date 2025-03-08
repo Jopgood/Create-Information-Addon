@@ -28,3 +28,5 @@ forge*changelog.txt
 .vscode
 run
 run-data
+
+/.codebuddy/

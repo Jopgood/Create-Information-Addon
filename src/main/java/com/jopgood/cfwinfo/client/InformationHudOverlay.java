@@ -9,9 +9,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
 import com.simibubi.create.foundation.gui.RemovedGuiUtils;
-import com.simibubi.create.foundation.gui.Theme;
-import com.simibubi.create.foundation.gui.element.GuiGameElement;
-import com.simibubi.create.foundation.utility.Color;
+import net.createmod.catnip.theme.Color;
+import net.createmod.catnip.gui.element.GuiGameElement;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.simibubi.create.infrastructure.config.CClient;
 
@@ -71,12 +70,13 @@ public class InformationHudOverlay {
         
         // Colors
         Boolean useCustom = cfg.overlayCustomColor.get();
+        Color tooltipBackground = new Color(0xf0100010, true);
         Color colorBackground = useCustom ? new Color(cfg.overlayBackgroundColor.get())
-            : Theme.c(Theme.Key.VANILLA_TOOLTIP_BACKGROUND).scaleAlpha(.75f);
+                : tooltipBackground.scaleAlpha(.75f);
         Color colorBorderTop = useCustom ? new Color(cfg.overlayBorderColorTop.get())
-            : Theme.c(Theme.Key.VANILLA_TOOLTIP_BORDER, true).copy();
+                : new Color(0x505000ff, true);
         Color colorBorderBot = useCustom ? new Color(cfg.overlayBorderColorBot.get())
-            : Theme.c(Theme.Key.VANILLA_TOOLTIP_BORDER, false).copy();
+                : new Color(0x5028007f, true);
 
         // Tooltip Dimensions
         int tooltipTextWidth = 0;
