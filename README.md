@@ -1,5 +1,5 @@
 <div align="center">
-    <img alt="logo" src="https://i.imgur.com/calDomL.png" height=300 width=300 style="display: block; margin: 0 auto;">
+    <img alt="logo" src="./assets/cfwinfo_logo.png" height=300 width=300 style="display: block; margin: 0 auto;">
 </div>
 
 # Create: Fuel & Water Information
@@ -18,7 +18,7 @@
 
 Welcome to Create: Fuel & Water Information! The purpose of this mod is to add fuel and water levels to your HUD.
 
-Currently, this is only possible for the brass jetpack but in future we will extend this out to other jetpacks and any other items that utilize fuel or water such as the hand drill.
+Currently, this is only possible for any wearable items that contain fuel or water but in future we will extend this out to other jetpacks and any other items that utilise fuel or water such as the hand drill.
 
 This mod was brewed from our personal need/want to see the fuel and water levels on our HUD.
 
