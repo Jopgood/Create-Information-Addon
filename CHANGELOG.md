@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.0] - 2024-12-08
+## [1.6.0] - 2025-09-08
 ### Added
 - **Handheld Tank Display**: Show tank information for tools held in your main hand (#4)
 - **Dual Tank View**: Display both chest armor and handheld item tanks simultaneously
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Scale Awareness**: Padding calculations respect sprite scale factor
 - **Memory Efficiency**: Optimized sprite rendering with reduced redundant calculations
 
-## [1.5.0] - 2025-01-XX
+## [1.5.0] - 2025-09-01
 
 ### Added
 - Universal tank detection for any fuel/water capable wearable items (no hardcoded lists)
