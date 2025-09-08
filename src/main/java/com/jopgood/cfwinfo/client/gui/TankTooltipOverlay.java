@@ -101,7 +101,7 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
         Boolean useCustom = cfg.overlayCustomColor.get();
         Color tooltipBackground = new Color(0xf0100010, true);
         Color colorBackground = useCustom ? new Color(cfg.overlayBackgroundColor.get())
-                : tooltipBackground.scaleAlpha(.75f);
+                : tooltipBackground.scaleAlpha(85.0f);
         Color colorBorderTop = useCustom ? new Color(cfg.overlayBorderColorTop.get())
                 : new Color(0x505000ff, true);
         Color colorBorderBot = useCustom ? new Color(cfg.overlayBorderColorBot.get())
@@ -117,10 +117,6 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
         int padding = 20;
         int posX, posY;
         switch (CommonConfig.getOverlayPosition()) {
-            case TOP_LEFT:
-                posX = padding;
-                posY = padding;
-                break;
             case TOP_RIGHT:
                 posX = width - tooltipTextWidth - padding;
                 posY = padding;
@@ -133,15 +129,10 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
                 posX = width - tooltipTextWidth - padding;
                 posY = height - tooltipHeight - padding;
                 break;
-            case CENTER:
+            case TOP_LEFT:
             default:
-                // Actually center the tooltip
-                posX = (width - tooltipTextWidth) / 2;
-                posY = (height - tooltipHeight) / 2;
-
-                // Ensure it stays on screen
-                posX = Math.max(padding, Math.min(posX, width - tooltipTextWidth - padding));
-                posY = Math.max(padding, Math.min(posY, height - tooltipHeight - padding));
+                posX = padding;
+                posY = padding;
                 break;
         }
 
@@ -160,8 +151,18 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
         }
 
         // Render tooltip background using Create's styling
-        PositionedTooltipRenderer.renderTooltip(graphics, tooltip, posX, posY,
-                colorBackground.getRGB(), colorBorderTop.getRGB(), colorBorderBot.getRGB());
+        PositionedTooltipRenderer.renderTooltip(
+                graphics,
+                tooltip,
+                posX,
+                posY,
+                colorBackground.getRGB(),
+                colorBorderTop.getRGB(),
+                colorBorderBot.getRGB(),
+                6,
+                6,
+                3,
+                12);
 
         // Render goggles icon
         ItemStack item = AllItems.GOGGLES.asStack();

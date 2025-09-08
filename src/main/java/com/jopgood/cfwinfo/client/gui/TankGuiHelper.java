@@ -1,7 +1,9 @@
 package com.jopgood.cfwinfo.client.gui;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,22 +26,25 @@ public class TankGuiHelper {
      */
     public static List<Component> generateTankTooltip(Player player) {
         List<Component> tooltip = new ArrayList<>();
-
-        if (canDisplayTankInfo()) {
-            ItemStack jetpackItem = player.getItemBySlot(EquipmentSlot.CHEST);
-            double fuelLevel = TankDataManager.getFuelLevel(jetpackItem);
-            double waterLevel = TankDataManager.getWaterLevel(jetpackItem);
-
-            tooltip.add(Component.literal("Tank Monitor"));
-            if (TankDataManager.isWearingWaterCapableItem(player)) {
-                tooltip.add(Component.literal("Water: " + formatLevel(waterLevel)));
-            }
-            if (TankDataManager.isWearingFuelCapableItem(player)) {
-                tooltip.add(Component.literal("Fuel: " + formatLevel(fuelLevel)));
-            }
-        } else {
-            tooltip.add(Component.literal("No Tank Equipment"));
+        
+        tooltip.add(canDisplayTankInfo() ? 
+            Component.literal("Tank Monitor:").withStyle(ChatFormatting.WHITE) :
+            Component.literal("No Tank Equipment").withStyle(ChatFormatting.GRAY));
+            
+        if (!canDisplayTankInfo()) {
+            return tooltip;
         }
+
+        ItemStack chestItem = player.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack toolItem = player.getItemInHand(InteractionHand.MAIN_HAND);
+        String chestLabel = chestItem.isEmpty() ? "On Chest" : chestItem.getHoverName().getString();
+        addItemTooltip(tooltip, chestLabel, chestItem,
+            TankDataManager.isWearingWaterCapableItem(player),
+            TankDataManager.isWearingFuelCapableItem(player), player);
+            
+        addItemTooltip(tooltip, toolItem.isEmpty() ? "In-Hand" : toolItem.getHoverName().getString(), player.getItemInHand(InteractionHand.MAIN_HAND),
+            TankDataManager.isHoldingWaterCapableItem(player),
+            TankDataManager.isHoldingFuelCapableItem(player), player);
 
         return tooltip;
     }
@@ -63,17 +68,48 @@ public class TankGuiHelper {
     }
 
     /**
+     * Adds item tooltip information if the item has tank capabilities
+     * @param tooltip The tooltip list to add to
+     * @param label The label for this item section
+     * @param item The item to check
+     * @param hasWater Whether the item has water capability
+     * @param hasFuel Whether the item has fuel capability
+     * @param player The player (needed for compatibility with existing methods)
+     */
+    private static void addItemTooltip(List<Component> tooltip, String label, ItemStack item, 
+                                      boolean hasWater, boolean hasFuel, Player player) {
+        if (item == null || (!hasWater && !hasFuel)) {
+            return;
+        }
+        
+        tooltip.add(Component.literal(label).withStyle(ChatFormatting.WHITE));
+
+        if (hasWater) {
+            Component waterText = Component.literal("  Water: ")
+                    .withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(formatLevel(TankDataManager.getWaterLevel(item)))
+                            .withStyle(ChatFormatting.AQUA));
+            tooltip.add(waterText);
+        }
+        
+        if (hasFuel) {
+            Component fuelText = Component.literal("  Fuel: ")
+                    .withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(formatLevel(TankDataManager.getFuelLevel(item)))
+                            .withStyle(ChatFormatting.GOLD));
+            tooltip.add(fuelText);
+        }
+    }
+
+    /**
      * Formats level values for display
      * @param level The level value to format
      * @return Formatted string representation
      */
     private static String formatLevel(double level) {
-        // Format to 1 decimal place, or whole number if it's a round value
-        if (level == (int) level) {
-            return String.valueOf((int) level);
-        } else {
-            return String.format("%.1f", level);
-        }
+        return level == (int) level ? 
+            String.valueOf((int) level) : 
+            String.format("%.1f", level);
     }
 
     /**
@@ -88,6 +124,9 @@ public class TankGuiHelper {
             return false;
         }
 
-        return TankDataManager.isWearingFuelCapableItem(player) || TankDataManager.isWearingWaterCapableItem(player);
+        return TankDataManager.isWearingFuelCapableItem(player) ||
+                TankDataManager.isWearingWaterCapableItem(player) ||
+                TankDataManager.isHoldingWaterCapableItem(player) ||
+                TankDataManager.isHoldingFuelCapableItem(player);
     }
 }

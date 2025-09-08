@@ -19,6 +19,16 @@ public class TankDataManager {
         return customData.copyTag().contains("tagWater");
     }
 
+    public static boolean isHoldingFuelCapableItem(Player player) {
+        ItemStack tool = player.getMainHandItem();
+        return canItemStoreFuel(tool);
+    }
+
+    public static boolean isHoldingWaterCapableItem(Player player) {
+        ItemStack tool = player.getMainHandItem();
+        return canItemStoreFuel(tool);
+    }
+
     public static boolean isWearingFuelCapableItem(Player player) {
         ItemStack chestplate = player.getInventory().getArmor(2);
         return canItemStoreFuel(chestplate);
