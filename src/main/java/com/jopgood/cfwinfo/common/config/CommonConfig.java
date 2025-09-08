@@ -42,12 +42,12 @@ public class CommonConfig {
         overlayOpacity = builder
                 .comment("Opacity of the overlay (0-100)")
                 .translation("cfwinfo.config.overlay_opacity")
-                .defineInRange("overlay_opacity", 75, 0, 100);
+                .defineInRange("overlay_opacity", 80, 0, 100);
 
         overlayPosition = builder
                 .comment("Position of the overlay on screen")
                 .translation("cfwinfo.config.overlay_position")
-                .defineEnum("overlay_position", OverlayPosition.CENTER);
+                .defineEnum("overlay_position", OverlayPosition.TOP_LEFT);
 
         spriteScaleFactor = builder
                 .comment("Scale factor for tank overlay size (1.0 = normal size, 2.0 = double size)")
@@ -66,7 +66,6 @@ public class CommonConfig {
     public enum OverlayPosition {
         TOP_LEFT,
         TOP_RIGHT,
-        CENTER,
         BOTTOM_LEFT,
         BOTTOM_RIGHT
     }

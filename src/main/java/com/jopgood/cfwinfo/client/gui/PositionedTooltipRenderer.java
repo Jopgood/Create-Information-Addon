@@ -15,6 +15,12 @@ public class PositionedTooltipRenderer {
 
     public static void renderTooltip(GuiGraphics graphics, List<Component> tooltip,
                                      int x, int y, int backgroundColor, int borderTop, int borderBot) {
+        renderTooltip(graphics, tooltip, x, y, backgroundColor, borderTop, borderBot, 8, 8, 8, 8);
+    }
+
+    public static void renderTooltip(GuiGraphics graphics, List<Component> tooltip,
+                                     int x, int y, int backgroundColor, int borderTop, int borderBot,
+                                     int paddingTop, int paddingBottom, int paddingLeft, int paddingRight) {
         if (tooltip.isEmpty()) {
             return;
         }
@@ -38,12 +44,11 @@ public class PositionedTooltipRenderer {
             tooltipHeight += (tooltip.size() - 1) * 10;
         }
 
-        // Tooltip background padding
-        int padding = 3;
-        int bgX1 = x - padding;
-        int bgY1 = y - 4;
-        int bgX2 = x + tooltipTextWidth + padding;
-        int bgY2 = y + tooltipHeight + 3;
+        // Tooltip background with separate padding values
+        int bgX1 = x - paddingLeft;
+        int bgY1 = y - paddingTop;
+        int bgX2 = x + tooltipTextWidth + paddingRight;
+        int bgY2 = y + tooltipHeight + paddingBottom;
 
         int zLevel = 400; // Standard tooltip z-level
 
