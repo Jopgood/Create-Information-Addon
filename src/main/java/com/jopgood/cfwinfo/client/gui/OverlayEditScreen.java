@@ -128,22 +128,15 @@ public class OverlayEditScreen extends Screen {
         onClose();
     }
 
+    /** Item icons render at z=450; lift the controls above that so they always sit on top. */
+    private static final int CONTROL_LAYER_Z = 500;
+
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // Light dim so the UI is readable but the world (and where the overlay sits on it) stays visible.
         renderBackground(graphics, mouseX, mouseY, partialTick);
 
-        // Title + instructions.
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
-        graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
-
-        // Widgets (buttons + slider).
-        for (Renderable renderable : this.renderables) {
-            renderable.render(graphics, mouseX, mouseY, partialTick);
-        }
-
-        // Preview LAST so the whole composite (flat tank sprites + depth-tested item icons) draws
-        // consistently on top of the widgets. Buttons remain clickable (see mouseClicked).
+        // Preview behind the controls.
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player != null) {
             int w = TankSpriteOverlay.compositeWidthPx(player);
@@ -154,6 +147,16 @@ public class OverlayEditScreen extends Screen {
 
             previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player);
         }
+
+        // Controls above the preview (including the depth-tested item icons).
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, CONTROL_LAYER_Z);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
+        graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
+        for (Renderable renderable : this.renderables) {
+            renderable.render(graphics, mouseX, mouseY, partialTick);
+        }
+        graphics.pose().popPose();
     }
 
     /** Background: a light dim rather than the default blur, so the world is visible while editing. */
@@ -164,7 +167,7 @@ public class OverlayEditScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Let widgets (buttons/slider) win first, so a preview drawn over them stays clickable.
+        // Controls render on top, so let them handle the click before starting a drag.
         if (super.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
