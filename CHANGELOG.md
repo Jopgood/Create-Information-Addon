@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.7.0] - 2026-06-03
 ### Fixed
+- **Overlay mode now persists across restarts**: toggling simplified/detailed mode (and the overlay on/off) is now saved to the config file. Previously the change only applied in-memory and reset to the default on the next launch.
 - **Held non-tank items no longer appear in the simplified overlay**: previously any item in your main hand (e.g. bone meal) was drawn next to the tank. The held item is now only shown when it is itself a tank.
 - **Empty tanks now display**: a worn tank with zero fuel and water no longer disappears. Tank capability is detected by item identity (known Create: Stuff 'N Additions items) as well as by stored contents, so empty/freshly-crafted tanks are still recognised.
 - **Fixed water-capability detection**: `isHoldingWaterCapableItem` was mistakenly checking fuel capability instead of water.
