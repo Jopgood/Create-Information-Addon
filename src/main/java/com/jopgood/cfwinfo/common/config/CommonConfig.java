@@ -25,6 +25,11 @@ public class CommonConfig {
     public final ModConfigSpec.EnumValue<OverlayPosition> overlayPosition;
     public final ModConfigSpec.DoubleValue spriteScaleFactor;
 
+    // Custom (dragged) overlay position, in GUI-scaled pixels. Only used when
+    // overlayPosition == CUSTOM. Stored as the top-left anchor of the overlay.
+    public final ModConfigSpec.IntValue customX;
+    public final ModConfigSpec.IntValue customY;
+
     private CommonConfig(ModConfigSpec.Builder builder) {
         // Create a section for overlay settings
         builder.push("overlay");
@@ -59,6 +64,16 @@ public class CommonConfig {
                 .translation("cfwinfo.config.messages_enabled")
                 .define("messages_enabled", false);
 
+        customX = builder
+                .comment("Custom overlay X position in GUI pixels (used only when overlay_position = CUSTOM)")
+                .translation("cfwinfo.config.custom_x")
+                .defineInRange("custom_x", 10, 0, 10000);
+
+        customY = builder
+                .comment("Custom overlay Y position in GUI pixels (used only when overlay_position = CUSTOM)")
+                .translation("cfwinfo.config.custom_y")
+                .defineInRange("custom_y", 10, 0, 10000);
+
         builder.pop(); // Exit overlay section
     }
 
@@ -67,7 +82,9 @@ public class CommonConfig {
         TOP_LEFT,
         TOP_RIGHT,
         BOTTOM_LEFT,
-        BOTTOM_RIGHT
+        BOTTOM_RIGHT,
+        /** Free position dragged by the player; uses customX / customY. */
+        CUSTOM
     }
 
     // Default values, used as a fallback whenever a config value is requested
@@ -78,13 +95,12 @@ public class CommonConfig {
     private static final int DEFAULT_OVERLAY_OPACITY = 80;
     private static final OverlayPosition DEFAULT_OVERLAY_POSITION = OverlayPosition.TOP_LEFT;
     private static final double DEFAULT_SPRITE_SCALE_FACTOR = 2.0;
+    private static final int DEFAULT_CUSTOM_X = 10;
+    private static final int DEFAULT_CUSTOM_Y = 10;
 
     /**
-     * Reads a config value, falling back to {@code fallback} if the config spec has
-     * not yet been loaded into memory. NeoForge throws
-     * "trying to get config values before these are loaded to memory" if a value is
-     * accessed too early (e.g. during early client ticks or before the config file is
-     * bound), so every accessor routes through here to stay crash-safe.
+     * Reads a config value, falling back to {@code fallback} until the spec is loaded.
+     * NeoForge throws if a value is accessed before the config is bound to memory.
      */
     private static <T> T safeGet(ModConfigSpec.ConfigValue<T> value, T fallback) {
         if (SPEC.isLoaded()) {
@@ -94,14 +110,9 @@ public class CommonConfig {
     }
 
     /**
-     * Writes a config value, but only once the config spec has been loaded. Setting
-     * a value before load would throw the same "not loaded" error, so the write is
-     * silently skipped until the config is available.
-     *
-     * <p>{@link ModConfigSpec.ConfigValue#set} only updates the in-memory config; it does
-     * not flush to disk, so runtime changes (e.g. toggling simplified mode with a keybind)
-     * would be lost on restart. We call {@link ModConfigSpec#save()} afterwards to persist
-     * the change to the config file.
+     * Writes a config value once the spec is loaded, then flushes it to disk.
+     * {@link ModConfigSpec.ConfigValue#set} only updates the in-memory config, so an explicit
+     * {@link ModConfigSpec#save()} is needed for runtime changes to survive a restart.
      */
     private static <T> void safeSet(ModConfigSpec.ConfigValue<T> value, T newValue) {
         if (SPEC.isLoaded()) {
@@ -139,8 +150,44 @@ public class CommonConfig {
         return safeGet(INSTANCE.overlayPosition, DEFAULT_OVERLAY_POSITION);
     }
 
+    public static void setOverlayPosition(OverlayPosition position) {
+        safeSet(INSTANCE.overlayPosition, position);
+    }
+
     public static double getSpriteScaleFactor() {
         return safeGet(INSTANCE.spriteScaleFactor, DEFAULT_SPRITE_SCALE_FACTOR);
+    }
+
+    /**
+     * Updates the sprite scale in memory only (no disk write). Used for live previewing in the
+     * overlay editor; the value is persisted later when the editor commits via
+     * {@link #setCustomPosition} or {@link #setOverlayPosition}, or reverted on cancel.
+     */
+    public static void setSpriteScaleFactorTransient(double value) {
+        if (SPEC.isLoaded()) {
+            INSTANCE.spriteScaleFactor.set(value);
+        }
+    }
+
+    public static int getCustomX() {
+        return safeGet(INSTANCE.customX, DEFAULT_CUSTOM_X);
+    }
+
+    public static int getCustomY() {
+        return safeGet(INSTANCE.customY, DEFAULT_CUSTOM_Y);
+    }
+
+    /**
+     * Persists a freely-dragged overlay position and switches the overlay into CUSTOM mode.
+     * Writes all three values then saves once, to avoid three separate disk writes.
+     */
+    public static void setCustomPosition(int x, int y) {
+        if (SPEC.isLoaded()) {
+            INSTANCE.customX.set(x);
+            INSTANCE.customY.set(y);
+            INSTANCE.overlayPosition.set(OverlayPosition.CUSTOM);
+            SPEC.save();
+        }
     }
 
 }

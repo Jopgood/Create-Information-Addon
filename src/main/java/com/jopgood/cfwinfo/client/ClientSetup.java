@@ -15,6 +15,9 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 
+import com.jopgood.cfwinfo.client.gui.OverlayEditScreen;
+
+import static com.jopgood.cfwinfo.client.KeyBinding.EDIT_OVERLAY;
 import static com.jopgood.cfwinfo.client.KeyBinding.TOGGLE_OVERLAY;
 import static com.jopgood.cfwinfo.client.KeyBinding.TOGGLE_SIMPLIFIED;
 
@@ -27,6 +30,7 @@ public class ClientSetup {
     public static void registerBindings(RegisterKeyMappingsEvent event) {
         event.register(TOGGLE_OVERLAY.get());
         event.register(TOGGLE_SIMPLIFIED.get());
+        event.register(EDIT_OVERLAY.get());
     }
 
 
@@ -56,6 +60,13 @@ public class ClientSetup {
                 mc.player.sendSystemMessage(Component.literal(
                         "Simplified Mode: " + (!simple ? "On" : "Off")
                 ));
+            }
+        }
+
+        while (EDIT_OVERLAY.get().consumeClick()) {
+            // Open the drag-to-position editor (only when in-world with no screen already open)
+            if (mc.player != null && mc.screen == null) {
+                mc.setScreen(new OverlayEditScreen());
             }
         }
     }

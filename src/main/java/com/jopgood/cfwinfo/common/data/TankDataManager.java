@@ -15,11 +15,9 @@ public class TankDataManager {
     private static final String CSA_NAMESPACE = "create_sa";
 
     /**
-     * Create: Stuff 'N Additions items that can hold fuel. Detection by item identity lets us
-     * recognise a tank even when it is empty — CS&A only writes the "tagFuel"/"tagWater" NBT keys
-     * when there is content, so a freshly crafted or fully drained tank would otherwise look like a
-     * non-tank item. Derived from which item/procedure classes reference "tagFuel" in CS&A.
-     * Update this set if CS&A adds or renames fuel-holding items.
+     * Create: Stuff 'N Additions item ids that can hold fuel. Identity detection recognises a tank
+     * even when empty, since CS&A only writes the "tagFuel"/"tagWater" NBT once a tank has content.
+     * Update if CS&A adds or renames fuel-holding items.
      */
     private static final Set<String> FUEL_CAPABLE_ITEMS = Set.of(
             "andesite_jetpack_chestplate",
@@ -37,8 +35,7 @@ public class TankDataManager {
     );
 
     /**
-     * Create: Stuff 'N Additions items that can hold water. See {@link #FUEL_CAPABLE_ITEMS} for why
-     * identity detection is used. Derived from which item/procedure classes reference "tagWater".
+     * Create: Stuff 'N Additions item ids that can hold water. See {@link #FUEL_CAPABLE_ITEMS}.
      */
     private static final Set<String> WATER_CAPABLE_ITEMS = Set.of(
             "brass_jetpack_chestplate",

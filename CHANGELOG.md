@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-03
+### Added
+- **Drag-to-position overlay editor**: a new keybind (default `O`) opens an in-game editor where you can drag the overlay anywhere on screen. The preview matches the live HUD exactly, and the controls hide while dragging for an unobstructed view.
+- **Preset positions in the editor**: Top Left / Top Right / Bottom Left / Bottom Right buttons preview a corner before you commit, instead of applying immediately.
+- **Tank scale slider**: adjust the sprite size (0.5x–5.0x) live in the editor, with a tooltip noting it stacks on top of Minecraft's GUI Scale. The new position and scale are saved together on Save and reverted on Cancel.
+
+### Changed
+- **Unified overlay layout for all positions** (chest tank left, tool tank right, item icons below). Corner positions now account for the full composite size so nothing clips at the screen edge.
+
 ## [1.7.0] - 2026-06-03
 ### Fixed
 - **Overlay mode now persists across restarts**: toggling simplified/detailed mode (and the overlay on/off) is now saved to the config file. Previously the change only applied in-memory and reset to the default on the next launch.
