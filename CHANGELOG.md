@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-06-03
+### Fixed
+- **Config Crash**: Prevent the "trying to get config values before these are loaded to memory" crash by guarding all config reads and writes behind a load check, falling back to default values until the config is loaded (reported on CurseForge)
+
 ## [1.6.0] - 2025-09-08
 ### Added
 - **Handheld Tank Display**: Show tank information for tools held in your main hand (#4)
