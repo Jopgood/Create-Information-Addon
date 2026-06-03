@@ -43,10 +43,10 @@ staying current on 1.21.1 or backporting to 1.20.1 (see Roadmap). Do not attempt
 ### Dependencies (`gradle.properties`)
 
 - `create_version = 6.0.11-292` — from `maven.createmod.net`, full jar, `transitive = false` (the `:slim` classifier was dropped by Create at 6.0.11)
-- `ponder_version = 1.0.59`
-- `flywheel_version = 1.0.4` — API `compileOnly` + `neoforge` `runtimeOnly`
-- `registrate_version = MC1.21-1.3.0+62` — from `maven.ithundxr.dev/snapshots`
-- `jei_version = 19.22.1.316` — `compileOnly` API + `localRuntime` full
+- `ponder_version = 1.0.85+mc1.21.1` — **note the artifact moved**: use `net.createmod.ponder:ponder-neoforge` (MC encoded in version), NOT the old `Ponder-NeoForge-1.21.1` (which stopped at 1.0.69). Create 6.0.10+ requires Ponder 1.0.82+.
+- `flywheel_version = 1.0.6` — API `compileOnly` + `neoforge` `runtimeOnly`
+- `registrate_version = MC1.21-1.3.0+67` — from `maven.ithundxr.dev/snapshots`
+- `jei_version = 19.27.0.340` — `compileOnly` API + `localRuntime` full
 - **Create Stuff 'N Additions** — `curse.maven:create-stuff-additions-466792:6448012` (Curse Maven; bump by replacing the trailing file id)
 
 Repositories: `maven.createmod.net`, `maven.ithundxr.dev/snapshots`, `cursemaven.com`,

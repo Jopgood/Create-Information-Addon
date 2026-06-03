@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.7.0] - 2026-06-03
 ### Changed
-- **Updated to Create 6.0.11**: Bumped Create `6.0.6-98` → `6.0.11-292` and refreshed the rest of the platform — NeoForge `21.1.206` → `21.1.233`, Ponder `1.0.59` → `1.0.69`, Flywheel `1.0.4` → `1.0.6`, Registrate `+62` → `+67`, JEI `19.22.1.316` → `19.27.0.340`
+- **Updated to Create 6.0.11**: Bumped Create `6.0.6-98` → `6.0.11-292` and refreshed the rest of the platform — NeoForge `21.1.206` → `21.1.233`, Ponder `1.0.59` → `1.0.85`, Flywheel `1.0.4` → `1.0.6`, Registrate `+62` → `+67`, JEI `19.22.1.316` → `19.27.0.340`
 - **Create dependency now uses the full jar**: Create stopped publishing the `:slim` classifier at 6.0.11, so the build depends on the full jar (still `transitive = false`). No change to the shipped mod.
+- **Ponder Maven coordinate change**: Create 6.0.10+ requires Ponder `1.0.82+`, which is published under the new `net.createmod.ponder:ponder-neoforge` artifact (the old `Ponder-NeoForge-1.21.1` artifact stopped at `1.0.69`). Updated the dependency accordingly.
 
 ## [1.6.1] - 2026-06-03
 ### Fixed
