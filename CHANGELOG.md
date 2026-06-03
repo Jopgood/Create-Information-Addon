@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-06-04
+### Added
+- **Position the detailed overlay, not just the sprite**: the in-game overlay editor (keybind `O`) now previews and positions whichever view you are using. In detailed (text) mode it shows the real tooltip while you place it, instead of only ever previewing the simplified sprite. The sprite-only scale slider is hidden in detailed mode.
+
+### Fixed
+- **Held filling/fueling tanks now show their real level**: standalone Create: Stuff 'N Additions tanks (small/medium/large filling and fueling tanks, and the creative filling tank) store their contents differently from jetpacks, so the overlay previously drew them as empty even when full. They now read correctly in both the sprite and text overlays, scaled to each tank's (configurable) capacity. The creative tank reads as full.
+
+### Changed
+- **License metadata corrected to MIT** to match `LICENSE.txt`; the build previously still declared the template default "All Rights Reserved".
+
 ## [1.8.0] - 2026-06-03
 ### Added
 - **Drag-to-position overlay editor**: a new keybind (default `O`) opens an in-game editor where you can drag the overlay anywhere on screen. The preview matches the live HUD exactly, and the controls hide while dragging for an unobstructed view.
@@ -101,6 +111,10 @@ Previous versions were built for Minecraft Forge. See individual release files i
 
 **Note**: For detailed release notes with user-friendly descriptions, see the corresponding files in `docs/releases/`.
 
-[Unreleased]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.8.0...v1.9.0
+[1.8.0]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.7.0...v1.8.0
+[1.7.0]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.6.1...v1.7.0
+[1.6.1]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/Jopgood/Create-Information-Addon/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Jopgood/Create-Information-Addon/releases/tag/v1.5.0
