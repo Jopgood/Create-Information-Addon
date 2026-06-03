@@ -73,11 +73,24 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         renderCompositeAt(graphics, anchor[0], anchor[1], player);
     }
 
+    /** Depth at which item icons are drawn on the HUD, so they sit above other HUD elements. */
+    private static final int HUD_ITEM_Z = 450;
+
+    /**
+     * Renders the tank composite with its top-left at GUI coordinates {@code (gx, gy)} for the HUD.
+     */
+    public void renderCompositeAt(GuiGraphics graphics, int gx, int gy, Player player) {
+        renderCompositeAt(graphics, gx, gy, player, HUD_ITEM_Z);
+    }
+
     /**
      * Renders the tank composite with its top-left at GUI coordinates {@code (gx, gy)}.
      * Public so the editor can preview at an arbitrary anchor using the same render path as the HUD.
+     *
+     * @param itemZ depth for the item icons; the editor passes a low value so the whole preview
+     *              stays behind the editor controls (the HUD uses {@link #HUD_ITEM_Z}).
      */
-    public void renderCompositeAt(GuiGraphics graphics, int gx, int gy, Player player) {
+    public void renderCompositeAt(GuiGraphics graphics, int gx, int gy, Player player, int itemZ) {
         float scaleFactor = (float) CommonConfig.getSpriteScaleFactor();
         ItemStack tankItem = player.getItemBySlot(EquipmentSlot.CHEST);
         ItemStack toolItem = player.getItemInHand(InteractionHand.MAIN_HAND);
@@ -102,11 +115,11 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         boolean toolIsTank = TankDataManager.isHoldingFuelCapableItem(player) || TankDataManager.isHoldingWaterCapableItem(player);
 
         if (chestIsTank && toolIsTank) {
-            renderDualTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem);
+            renderDualTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem, itemZ);
         } else {
             // render() guarantees at least one tank; show whichever slot has it.
             ItemStack subject = chestIsTank ? tankItem : toolItem;
-            renderSingleTankDisplay(graphics, scaledX, scaledY, subject);
+            renderSingleTankDisplay(graphics, scaledX, scaledY, subject, itemZ);
         }
 
         graphics.pose().popPose();
@@ -116,7 +129,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
     }
 
     private void renderDualTankDisplay(GuiGraphics graphics, int scaledX, int scaledY,
-                                      ItemStack tankItem, ItemStack toolItem) {
+                                      ItemStack tankItem, ItemStack toolItem, int itemZ) {
         int tankU = 0;
         int tankV = 2 * FRAME_HEIGHT; // tank outline row
 
@@ -132,11 +145,11 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         renderTankLayers(graphics, tank1X, scaledY, tankU, tankV, chestFuelU, 0, chestWaterU, FRAME_HEIGHT);
         renderTankLayers(graphics, tank2X, scaledY, tankU, tankV, toolFuelU, 0, toolWaterU, FRAME_HEIGHT);
 
-        GuiGameElement.of(tankItem).at(tank1X, itemY, 450).render(graphics);
-        GuiGameElement.of(toolItem).at(tank2X, itemY, 450).render(graphics);
+        GuiGameElement.of(tankItem).at(tank1X, itemY, itemZ).render(graphics);
+        GuiGameElement.of(toolItem).at(tank2X, itemY, itemZ).render(graphics);
     }
 
-    private void renderSingleTankDisplay(GuiGraphics graphics, int scaledX, int scaledY, ItemStack tankItem) {
+    private void renderSingleTankDisplay(GuiGraphics graphics, int scaledX, int scaledY, ItemStack tankItem, int itemZ) {
         int tankU = 0;
         int tankV = 2 * FRAME_HEIGHT; // tank outline row
         int fuelU = frameU(TankDataManager.getFuelLevel(tankItem));
@@ -146,7 +159,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
 
         // Item icon directly below the tank. A held non-tank item is intentionally not drawn here.
         int itemY = scaledY + FRAME_HEIGHT;
-        GuiGameElement.of(tankItem).at(scaledX, itemY, 450).render(graphics);
+        GuiGameElement.of(tankItem).at(scaledX, itemY, itemZ).render(graphics);
     }
 
     private void renderTankLayers(GuiGraphics graphics, int scaledX, int scaledY,

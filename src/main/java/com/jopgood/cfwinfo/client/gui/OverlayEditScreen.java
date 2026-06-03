@@ -128,15 +128,17 @@ public class OverlayEditScreen extends Screen {
         onClose();
     }
 
-    /** Item icons render at z=450; lift the controls above that so they always sit on top. */
-    private static final int CONTROL_LAYER_Z = 500;
+    private static final Component DRAG_HINT = Component.literal("Release to place the overlay.");
+
+    /** Low item-icon z so a resting preview stays behind the controls (during a drag they're hidden). */
+    private static final int PREVIEW_ITEM_Z = 0;
 
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // Light dim so the UI is readable but the world (and where the overlay sits on it) stays visible.
         renderBackground(graphics, mouseX, mouseY, partialTick);
 
-        // Preview behind the controls.
+        // The overlay preview.
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player != null) {
             int w = TankSpriteOverlay.compositeWidthPx(player);
@@ -145,18 +147,19 @@ public class OverlayEditScreen extends Screen {
             int border = dragging ? 0xFFFFE066 : 0x80FFFFFF;
             graphics.renderOutline(anchorX - 1, anchorY - 1, w + 2, h + 2, border);
 
-            previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player);
+            previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player, PREVIEW_ITEM_Z);
         }
 
-        // Controls above the preview (including the depth-tested item icons).
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, CONTROL_LAYER_Z);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
-        graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
-        for (Renderable renderable : this.renderables) {
-            renderable.render(graphics, mouseX, mouseY, partialTick);
+        if (dragging) {
+            // Hide the controls while dragging so the preview is never obscured by (or overlapping) them.
+            graphics.drawCenteredString(this.font, DRAG_HINT, this.width / 2, 8, 0xFFFFFFFF);
+        } else {
+            graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
+            graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
+            for (Renderable renderable : this.renderables) {
+                renderable.render(graphics, mouseX, mouseY, partialTick);
+            }
         }
-        graphics.pose().popPose();
     }
 
     /** Background: a light dim rather than the default blur, so the world is visible while editing. */
