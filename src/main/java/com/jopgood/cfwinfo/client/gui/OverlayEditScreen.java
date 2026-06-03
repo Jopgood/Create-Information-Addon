@@ -27,14 +27,17 @@ import org.jetbrains.annotations.NotNull;
 public class OverlayEditScreen extends Screen {
 
     private static final Component INSTRUCTION =
-            Component.literal("Drag the overlay to position it, then Save. Or pick a preset.");
+            Component.literal("Drag the overlay or pick a preset to preview, then Save.");
 
     private static final double MIN_SCALE = 0.5;
     private static final double MAX_SCALE = 5.0;
 
     private final TankSpriteOverlay previewOverlay = new TankSpriteOverlay();
 
-    // Working anchor (top-left of the tank sprite) in GUI pixels.
+    // What Save will persist: a preset enum, or CUSTOM once the overlay has been dragged.
+    private OverlayPosition pendingPosition = OverlayPosition.TOP_LEFT;
+
+    // Working anchor (top-left of the composite) in GUI pixels.
     private int anchorX;
     private int anchorY;
 
@@ -56,11 +59,15 @@ public class OverlayEditScreen extends Screen {
         // Remember the scale we opened with so Cancel/Escape can revert a live preview.
         originalScale = CommonConfig.getSpriteScaleFactor();
         committed = false;
+        pendingPosition = CommonConfig.getOverlayPosition();
 
         // Seed the working anchor from where the overlay currently renders, so it doesn't jump.
-        int[] anchor = TankSpriteOverlay.currentAnchor(this.width, this.height);
-        anchorX = anchor[0];
-        anchorY = anchor[1];
+        Player player = this.minecraft != null ? this.minecraft.player : null;
+        if (player != null) {
+            int[] anchor = TankSpriteOverlay.currentAnchor(player, this.width, this.height);
+            anchorX = anchor[0];
+            anchorY = anchor[1];
+        }
         clampAnchor();
 
         int cx = this.width / 2;
@@ -96,17 +103,29 @@ public class OverlayEditScreen extends Screen {
                 .bounds(cx + 4, bottom, 100, 20).build());
     }
 
-    /** Switches to a preset position and stores it (plus any scale change) immediately, then closes. */
+    /**
+     * Previews a preset position without saving or closing, so the player can see it before
+     * committing. The preview moves to exactly where the live HUD would render that preset.
+     */
     private void applyPreset(OverlayPosition position) {
-        committed = true;
-        CommonConfig.setOverlayPosition(position); // saves, flushing the previewed scale too
-        onClose();
+        pendingPosition = position;
+        Player player = this.minecraft != null ? this.minecraft.player : null;
+        int w = player != null ? TankSpriteOverlay.compositeWidthPx(player) : 0;
+        int h = TankSpriteOverlay.compositeHeightPx();
+        int[] anchor = OverlayAnchor.resolveSprite(position, this.width, this.height, w, h);
+        anchorX = anchor[0];
+        anchorY = anchor[1];
+        clampAnchor();
     }
 
-    /** Persists the dragged position as a CUSTOM anchor (plus any scale change) and closes. */
+    /** Persists the previewed position (a preset, or CUSTOM if dragged) plus any scale change. */
     private void save() {
         committed = true;
-        CommonConfig.setCustomPosition(anchorX, anchorY); // saves, flushing the previewed scale too
+        if (pendingPosition == OverlayPosition.CUSTOM) {
+            CommonConfig.setCustomPosition(anchorX, anchorY); // saves, flushing the previewed scale too
+        } else {
+            CommonConfig.setOverlayPosition(pendingPosition); // saves, flushing the previewed scale too
+        }
         onClose();
     }
 
@@ -134,7 +153,7 @@ public class OverlayEditScreen extends Screen {
             int border = dragging ? 0xFFFFE066 : 0x80FFFFFF;
             graphics.renderOutline(anchorX - 1, anchorY - 1, w + 2, h + 2, border);
 
-            previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player, OverlayPosition.CUSTOM);
+            previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player);
         }
     }
 
@@ -152,6 +171,8 @@ public class OverlayEditScreen extends Screen {
         }
         if (button == 0 && this.minecraft != null && this.minecraft.player != null && isInsideOverlay(mouseX, mouseY)) {
             dragging = true;
+            // Dragging means the player is choosing a free position; Save will store it as CUSTOM.
+            pendingPosition = OverlayPosition.CUSTOM;
             grabOffsetX = (int) Math.round(mouseX) - anchorX;
             grabOffsetY = (int) Math.round(mouseY) - anchorY;
             return true;

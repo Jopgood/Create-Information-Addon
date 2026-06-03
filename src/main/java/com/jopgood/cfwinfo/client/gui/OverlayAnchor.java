@@ -20,24 +20,24 @@ public final class OverlayAnchor {
     private OverlayAnchor() {}
 
     /**
-     * Resolves the top-left anchor of the tank sprite for the simplified overlay.
+     * Resolves the top-left anchor of the simplified overlay composite.
      *
      * @param position the configured overlay position
      * @param guiW     GUI-scaled screen width
      * @param guiH     GUI-scaled screen height
-     * @param renderW  rendered width of a single tank sprite (FRAME_WIDTH * scale)
-     * @param renderH  rendered height of a single tank sprite (FRAME_HEIGHT * scale)
+     * @param contentW rendered width of the whole composite in GUI pixels
+     * @param contentH rendered height of the whole composite in GUI pixels
      * @return {@code [x, y]} top-left anchor in GUI pixels
      */
-    public static int[] resolveSprite(OverlayPosition position, int guiW, int guiH, int renderW, int renderH) {
+    public static int[] resolveSprite(OverlayPosition position, int guiW, int guiH, int contentW, int contentH) {
         return switch (position) {
             case TOP_LEFT -> new int[]{MARGIN, MARGIN};
-            case TOP_RIGHT -> new int[]{guiW - renderW - MARGIN, MARGIN};
-            case BOTTOM_LEFT -> new int[]{MARGIN, guiH - renderH - MARGIN};
-            case BOTTOM_RIGHT -> new int[]{guiW - renderW - MARGIN, guiH - renderH - MARGIN};
+            case TOP_RIGHT -> new int[]{guiW - contentW - MARGIN, MARGIN};
+            case BOTTOM_LEFT -> new int[]{MARGIN, guiH - contentH - MARGIN};
+            case BOTTOM_RIGHT -> new int[]{guiW - contentW - MARGIN, guiH - contentH - MARGIN};
             case CUSTOM -> new int[]{
-                    clamp(CommonConfig.getCustomX(), 0, Math.max(0, guiW - renderW)),
-                    clamp(CommonConfig.getCustomY(), 0, Math.max(0, guiH - renderH))
+                    clamp(CommonConfig.getCustomX(), 0, Math.max(0, guiW - contentW)),
+                    clamp(CommonConfig.getCustomY(), 0, Math.max(0, guiH - contentH))
             };
         };
     }
