@@ -70,37 +70,71 @@ public class CommonConfig {
         BOTTOM_RIGHT
     }
 
+    // Default values, used as a fallback whenever a config value is requested
+    // before the config has been loaded into memory (see safeGet/safeSet below).
+    private static final boolean DEFAULT_INFO_ENABLED = true;
+    private static final boolean DEFAULT_SIMPLIFIED_ENABLED = false;
+    private static final boolean DEFAULT_MESSAGES_ENABLED = false;
+    private static final int DEFAULT_OVERLAY_OPACITY = 80;
+    private static final OverlayPosition DEFAULT_OVERLAY_POSITION = OverlayPosition.TOP_LEFT;
+    private static final double DEFAULT_SPRITE_SCALE_FACTOR = 2.0;
+
+    /**
+     * Reads a config value, falling back to {@code fallback} if the config spec has
+     * not yet been loaded into memory. NeoForge throws
+     * "trying to get config values before these are loaded to memory" if a value is
+     * accessed too early (e.g. during early client ticks or before the config file is
+     * bound), so every accessor routes through here to stay crash-safe.
+     */
+    private static <T> T safeGet(ModConfigSpec.ConfigValue<T> value, T fallback) {
+        if (SPEC.isLoaded()) {
+            return value.get();
+        }
+        return fallback;
+    }
+
+    /**
+     * Writes a config value, but only once the config spec has been loaded. Setting
+     * a value before load would throw the same "not loaded" error, so the write is
+     * silently skipped until the config is available.
+     */
+    private static <T> void safeSet(ModConfigSpec.ConfigValue<T> value, T newValue) {
+        if (SPEC.isLoaded()) {
+            value.set(newValue);
+        }
+    }
+
     // Convenience getters (you can access INSTANCE.configValue.get() directly)
     public static boolean isInfoEnabled() {
-        return INSTANCE.infoEnabled.get();
+        return safeGet(INSTANCE.infoEnabled, DEFAULT_INFO_ENABLED);
     }
 
     public static void enableInfo(Boolean enable) {
-        INSTANCE.infoEnabled.set(enable);
+        safeSet(INSTANCE.infoEnabled, enable);
     }
 
     public static boolean isSimplifiedEnabled() {
-        return INSTANCE.simplifiedEnabled.get();
+        return safeGet(INSTANCE.simplifiedEnabled, DEFAULT_SIMPLIFIED_ENABLED);
     }
 
     public static void enableSimplified(Boolean enable) {
-        INSTANCE.simplifiedEnabled.set(enable);
+        safeSet(INSTANCE.simplifiedEnabled, enable);
     }
 
     public static boolean isMessagesEnabled() {
-        return INSTANCE.messagesEnabled.get();
+        return safeGet(INSTANCE.messagesEnabled, DEFAULT_MESSAGES_ENABLED);
     }
 
     public static int getOverlayOpacity() {
-        return INSTANCE.overlayOpacity.get();
+        return safeGet(INSTANCE.overlayOpacity, DEFAULT_OVERLAY_OPACITY);
     }
 
     public static OverlayPosition getOverlayPosition() {
-        return INSTANCE.overlayPosition.get();
+        return safeGet(INSTANCE.overlayPosition, DEFAULT_OVERLAY_POSITION);
     }
 
     public static double getSpriteScaleFactor() {
-        return INSTANCE.spriteScaleFactor.get();
+        return safeGet(INSTANCE.spriteScaleFactor, DEFAULT_SPRITE_SCALE_FACTOR);
     }
 
 }
