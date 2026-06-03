@@ -25,6 +25,11 @@ public class CommonConfig {
     public final ModConfigSpec.EnumValue<OverlayPosition> overlayPosition;
     public final ModConfigSpec.DoubleValue spriteScaleFactor;
 
+    // Custom (dragged) overlay position, in GUI-scaled pixels. Only used when
+    // overlayPosition == CUSTOM. Stored as the top-left anchor of the overlay.
+    public final ModConfigSpec.IntValue customX;
+    public final ModConfigSpec.IntValue customY;
+
     private CommonConfig(ModConfigSpec.Builder builder) {
         // Create a section for overlay settings
         builder.push("overlay");
@@ -59,6 +64,16 @@ public class CommonConfig {
                 .translation("cfwinfo.config.messages_enabled")
                 .define("messages_enabled", false);
 
+        customX = builder
+                .comment("Custom overlay X position in GUI pixels (used only when overlay_position = CUSTOM)")
+                .translation("cfwinfo.config.custom_x")
+                .defineInRange("custom_x", 10, 0, 10000);
+
+        customY = builder
+                .comment("Custom overlay Y position in GUI pixels (used only when overlay_position = CUSTOM)")
+                .translation("cfwinfo.config.custom_y")
+                .defineInRange("custom_y", 10, 0, 10000);
+
         builder.pop(); // Exit overlay section
     }
 
@@ -67,7 +82,9 @@ public class CommonConfig {
         TOP_LEFT,
         TOP_RIGHT,
         BOTTOM_LEFT,
-        BOTTOM_RIGHT
+        BOTTOM_RIGHT,
+        /** Free position dragged by the player; uses customX / customY. */
+        CUSTOM
     }
 
     // Default values, used as a fallback whenever a config value is requested
@@ -78,6 +95,8 @@ public class CommonConfig {
     private static final int DEFAULT_OVERLAY_OPACITY = 80;
     private static final OverlayPosition DEFAULT_OVERLAY_POSITION = OverlayPosition.TOP_LEFT;
     private static final double DEFAULT_SPRITE_SCALE_FACTOR = 2.0;
+    private static final int DEFAULT_CUSTOM_X = 10;
+    private static final int DEFAULT_CUSTOM_Y = 10;
 
     /**
      * Reads a config value, falling back to {@code fallback} if the config spec has
@@ -139,8 +158,33 @@ public class CommonConfig {
         return safeGet(INSTANCE.overlayPosition, DEFAULT_OVERLAY_POSITION);
     }
 
+    public static void setOverlayPosition(OverlayPosition position) {
+        safeSet(INSTANCE.overlayPosition, position);
+    }
+
     public static double getSpriteScaleFactor() {
         return safeGet(INSTANCE.spriteScaleFactor, DEFAULT_SPRITE_SCALE_FACTOR);
+    }
+
+    public static int getCustomX() {
+        return safeGet(INSTANCE.customX, DEFAULT_CUSTOM_X);
+    }
+
+    public static int getCustomY() {
+        return safeGet(INSTANCE.customY, DEFAULT_CUSTOM_Y);
+    }
+
+    /**
+     * Persists a freely-dragged overlay position and switches the overlay into CUSTOM mode.
+     * Writes all three values then saves once, to avoid three separate disk writes.
+     */
+    public static void setCustomPosition(int x, int y) {
+        if (SPEC.isLoaded()) {
+            INSTANCE.customX.set(x);
+            INSTANCE.customY.set(y);
+            INSTANCE.overlayPosition.set(OverlayPosition.CUSTOM);
+            SPEC.save();
+        }
     }
 
 }

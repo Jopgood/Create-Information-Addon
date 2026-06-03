@@ -129,6 +129,11 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
                 posX = width - tooltipTextWidth - padding;
                 posY = height - tooltipHeight - padding;
                 break;
+            case CUSTOM:
+                // Free position dragged by the player; clamp so the tooltip stays on screen.
+                posX = OverlayAnchor.clamp(CommonConfig.getCustomX(), 0, Math.max(0, width - tooltipTextWidth));
+                posY = OverlayAnchor.clamp(CommonConfig.getCustomY(), 0, Math.max(0, height - tooltipHeight));
+                break;
             case TOP_LEFT:
             default:
                 posX = padding;

@@ -19,4 +19,11 @@ public class KeyBinding {
             GLFW.GLFW_KEY_P,
             "key.categories.cfwinfo"
     ));
+
+    public static final Lazy<KeyMapping> EDIT_OVERLAY = Lazy.of(() -> new KeyMapping(
+            "key.cfwinfo.edit_overlay",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_O,
+            "key.categories.cfwinfo"
+    ));
 }
