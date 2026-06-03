@@ -66,7 +66,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         }
 
         OverlayPosition position = CommonConfig.getOverlayPosition();
-        int[] anchor = OverlayAnchor.resolveSprite(position, graphics.guiWidth(), graphics.guiHeight(),
+        int[] anchor = OverlayAnchor.resolve(position, graphics.guiWidth(), graphics.guiHeight(),
                 compositeWidthPx(player), compositeHeightPx());
 
         renderCompositeAt(graphics, anchor[0], anchor[1], player);
@@ -211,7 +211,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
      * seed the drag position so opening it shows the overlay exactly where it already renders.
      */
     public static int[] currentAnchor(Player player, int guiW, int guiH) {
-        return OverlayAnchor.resolveSprite(CommonConfig.getOverlayPosition(), guiW, guiH,
+        return OverlayAnchor.resolve(CommonConfig.getOverlayPosition(), guiW, guiH,
                 compositeWidthPx(player), compositeHeightPx());
     }
 }
