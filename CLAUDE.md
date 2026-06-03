@@ -36,7 +36,7 @@ staying current on 1.21.1 or backporting to 1.20.1 (see Roadmap). Do not attempt
 | Build plugin | ModDevGradle `net.neoforged.moddev` `2.0.107` |
 | Gradle | `8.14.3` (wrapper) |
 | Mappings | Parchment `1.21.1` / `2024.11.17` |
-| Mod id / version | `cfwinfo` / `1.6.0` |
+| Mod id / version | `cfwinfo` / `1.8.0` |
 | Group | `com.jopgood.cfwinfo` |
 | License | MIT (per `LICENSE.txt`) — note `gradle.properties` `mod_license` still has the template default "All Rights Reserved"; reconcile. |
 
