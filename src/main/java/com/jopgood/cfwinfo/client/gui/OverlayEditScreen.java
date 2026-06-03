@@ -3,25 +3,34 @@ package com.jopgood.cfwinfo.client.gui;
 import com.jopgood.cfwinfo.common.config.CommonConfig;
 import com.jopgood.cfwinfo.common.config.CommonConfig.OverlayPosition;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * In-game editor for freely positioning the overlay by dragging it.
+ * In-game editor for freely positioning and sizing the overlay.
  *
  * <p>The preview is drawn by the live {@link TankSpriteOverlay#renderCompositeAt} method at the same
  * anchor the HUD would use, so it is WYSIWYG — what you drop is exactly what renders. Dragging keeps
  * the cursor's offset within the sprite (a "grab offset"), so picking the sprite up anywhere doesn't
  * snap it under the cursor, and the saved anchor matches the previewed one precisely.
+ *
+ * <p>The scale slider previews live by writing the scale to the config in memory only; the value is
+ * persisted when the editor commits (Save / a preset button) and reverted if the editor is cancelled.
  */
 public class OverlayEditScreen extends Screen {
 
     private static final Component INSTRUCTION =
             Component.literal("Drag the overlay to position it, then Save. Or pick a preset.");
+
+    private static final double MIN_SCALE = 0.5;
+    private static final double MAX_SCALE = 5.0;
 
     private final TankSpriteOverlay previewOverlay = new TankSpriteOverlay();
 
@@ -34,12 +43,20 @@ public class OverlayEditScreen extends Screen {
     private int grabOffsetX;
     private int grabOffsetY;
 
+    // Scale preview/commit state.
+    private double originalScale;
+    private boolean committed = false;
+
     public OverlayEditScreen() {
         super(Component.literal("Overlay Position"));
     }
 
     @Override
     protected void init() {
+        // Remember the scale we opened with so Cancel/Escape can revert a live preview.
+        originalScale = CommonConfig.getSpriteScaleFactor();
+        committed = false;
+
         // Seed the working anchor from where the overlay currently renders, so it doesn't jump.
         int[] anchor = TankSpriteOverlay.currentAnchor(this.width, this.height);
         anchorX = anchor[0];
@@ -48,9 +65,17 @@ public class OverlayEditScreen extends Screen {
 
         int cx = this.width / 2;
         int bottom = this.height - 28;
-
-        // Preset reset buttons (row above the action row).
         int presetY = bottom - 24;
+        int sliderY = presetY - 24;
+
+        // Scale slider (with a tooltip clarifying it stacks on top of Minecraft's GUI Scale).
+        ScaleSlider slider = new ScaleSlider(cx - 110, sliderY, 220, 20, originalScale);
+        slider.setTooltip(Tooltip.create(Component.literal(
+                "Adjusts the tank sprite size. The overlay already scales with Minecraft's "
+                        + "GUI Scale setting; this is an extra multiplier on top of that.")));
+        addRenderableWidget(slider);
+
+        // Preset reset buttons.
         int presetW = 78;
         int gap = 4;
         int rowWidth = presetW * 4 + gap * 3;
@@ -71,15 +96,17 @@ public class OverlayEditScreen extends Screen {
                 .bounds(cx + 4, bottom, 100, 20).build());
     }
 
-    /** Switches to a preset position and stores it immediately, then closes. */
+    /** Switches to a preset position and stores it (plus any scale change) immediately, then closes. */
     private void applyPreset(OverlayPosition position) {
-        CommonConfig.setOverlayPosition(position);
+        committed = true;
+        CommonConfig.setOverlayPosition(position); // saves, flushing the previewed scale too
         onClose();
     }
 
-    /** Persists the dragged position as a CUSTOM anchor and closes. */
+    /** Persists the dragged position as a CUSTOM anchor (plus any scale change) and closes. */
     private void save() {
-        CommonConfig.setCustomPosition(anchorX, anchorY);
+        committed = true;
+        CommonConfig.setCustomPosition(anchorX, anchorY); // saves, flushing the previewed scale too
         onClose();
     }
 
@@ -88,26 +115,26 @@ public class OverlayEditScreen extends Screen {
         // Light dim so the UI is readable but the world (and where the overlay sits on it) stays visible.
         renderBackground(graphics, mouseX, mouseY, partialTick);
 
+        // Title + instructions.
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
+        graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
+
+        // Widgets (buttons + slider).
+        for (Renderable renderable : this.renderables) {
+            renderable.render(graphics, mouseX, mouseY, partialTick);
+        }
+
+        // Preview LAST so the whole composite (flat tank sprites + depth-tested item icons) draws
+        // consistently on top of the widgets. Buttons remain clickable (see mouseClicked).
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player != null) {
             int w = TankSpriteOverlay.compositeWidthPx(player);
             int h = TankSpriteOverlay.compositeHeightPx();
 
-            // Highlight the draggable region.
             int border = dragging ? 0xFFFFE066 : 0x80FFFFFF;
             graphics.renderOutline(anchorX - 1, anchorY - 1, w + 2, h + 2, border);
 
-            // Live preview using the exact HUD rendering path (CUSTOM layout: items below, no padding).
             previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player, OverlayPosition.CUSTOM);
-        }
-
-        // Title + instructions.
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFFFF);
-        graphics.drawCenteredString(this.font, INSTRUCTION, this.width / 2, 22, 0xFFB0B0B0);
-
-        // Buttons on top of everything.
-        for (Renderable renderable : this.renderables) {
-            renderable.render(graphics, mouseX, mouseY, partialTick);
         }
     }
 
@@ -119,13 +146,17 @@ public class OverlayEditScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Let widgets (buttons/slider) win first, so a preview drawn over them stays clickable.
+        if (super.mouseClicked(mouseX, mouseY, button)) {
+            return true;
+        }
         if (button == 0 && this.minecraft != null && this.minecraft.player != null && isInsideOverlay(mouseX, mouseY)) {
             dragging = true;
             grabOffsetX = (int) Math.round(mouseX) - anchorX;
             grabOffsetY = (int) Math.round(mouseY) - anchorY;
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return false;
     }
 
     @Override
@@ -146,6 +177,15 @@ public class OverlayEditScreen extends Screen {
             return true;
         }
         return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public void onClose() {
+        // If the editor wasn't committed (Cancel / Escape), undo any live scale preview.
+        if (!committed) {
+            CommonConfig.setSpriteScaleFactorTransient(originalScale);
+        }
+        super.onClose();
     }
 
     private boolean isInsideOverlay(double mouseX, double mouseY) {
@@ -169,5 +209,32 @@ public class OverlayEditScreen extends Screen {
     public boolean isPauseScreen() {
         // Keep the world rendering so the player can see the overlay in context.
         return false;
+    }
+
+    /** Slider mapping its 0..1 value onto the {@link #MIN_SCALE}..{@link #MAX_SCALE} scale range. */
+    private static final class ScaleSlider extends AbstractSliderButton {
+        ScaleSlider(int x, int y, int width, int height, double initialScale) {
+            super(x, y, width, height, Component.empty(), toSliderValue(initialScale));
+            updateMessage();
+        }
+
+        private static double toSliderValue(double scale) {
+            return Mth.clamp((scale - MIN_SCALE) / (MAX_SCALE - MIN_SCALE), 0.0, 1.0);
+        }
+
+        private double toScale() {
+            return MIN_SCALE + this.value * (MAX_SCALE - MIN_SCALE);
+        }
+
+        @Override
+        protected void updateMessage() {
+            setMessage(Component.literal(String.format("Tank Scale: %.2fx", toScale())));
+        }
+
+        @Override
+        protected void applyValue() {
+            // Live preview only; persisted when the editor commits.
+            CommonConfig.setSpriteScaleFactorTransient(toScale());
+        }
     }
 }

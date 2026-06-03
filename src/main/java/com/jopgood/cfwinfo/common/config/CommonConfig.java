@@ -166,6 +166,17 @@ public class CommonConfig {
         return safeGet(INSTANCE.spriteScaleFactor, DEFAULT_SPRITE_SCALE_FACTOR);
     }
 
+    /**
+     * Updates the sprite scale in memory only (no disk write). Used for live previewing in the
+     * overlay editor; the value is persisted later when the editor commits via
+     * {@link #setCustomPosition} or {@link #setOverlayPosition}, or reverted on cancel.
+     */
+    public static void setSpriteScaleFactorTransient(double value) {
+        if (SPEC.isLoaded()) {
+            INSTANCE.spriteScaleFactor.set(value);
+        }
+    }
+
     public static int getCustomX() {
         return safeGet(INSTANCE.customX, DEFAULT_CUSTOM_X);
     }
