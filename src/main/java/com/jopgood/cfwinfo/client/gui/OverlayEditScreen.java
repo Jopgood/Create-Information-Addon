@@ -14,15 +14,14 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * In-game editor for freely positioning and sizing the overlay.
+ * In-game editor for positioning and sizing the overlay.
  *
- * <p>The preview is drawn by the live {@link TankSpriteOverlay#renderCompositeAt} method at the same
- * anchor the HUD would use, so it is WYSIWYG — what you drop is exactly what renders. Dragging keeps
- * the cursor's offset within the sprite (a "grab offset"), so picking the sprite up anywhere doesn't
- * snap it under the cursor, and the saved anchor matches the previewed one precisely.
+ * <p>The preview is drawn by {@link TankSpriteOverlay#renderCompositeAt} at the anchor the HUD would
+ * use, so it matches the live overlay. Dragging preserves the cursor's offset within the sprite, so
+ * the sprite is not snapped under the cursor when picked up.
  *
- * <p>The scale slider previews live by writing the scale to the config in memory only; the value is
- * persisted when the editor commits (Save / a preset button) and reverted if the editor is cancelled.
+ * <p>The scale slider previews live in memory only; the value is persisted when the editor commits
+ * (Save or a preset) and reverted if cancelled.
  */
 public class OverlayEditScreen extends Screen {
 

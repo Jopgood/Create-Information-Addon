@@ -99,11 +99,8 @@ public class CommonConfig {
     private static final int DEFAULT_CUSTOM_Y = 10;
 
     /**
-     * Reads a config value, falling back to {@code fallback} if the config spec has
-     * not yet been loaded into memory. NeoForge throws
-     * "trying to get config values before these are loaded to memory" if a value is
-     * accessed too early (e.g. during early client ticks or before the config file is
-     * bound), so every accessor routes through here to stay crash-safe.
+     * Reads a config value, falling back to {@code fallback} until the spec is loaded.
+     * NeoForge throws if a value is accessed before the config is bound to memory.
      */
     private static <T> T safeGet(ModConfigSpec.ConfigValue<T> value, T fallback) {
         if (SPEC.isLoaded()) {
@@ -113,14 +110,9 @@ public class CommonConfig {
     }
 
     /**
-     * Writes a config value, but only once the config spec has been loaded. Setting
-     * a value before load would throw the same "not loaded" error, so the write is
-     * silently skipped until the config is available.
-     *
-     * <p>{@link ModConfigSpec.ConfigValue#set} only updates the in-memory config; it does
-     * not flush to disk, so runtime changes (e.g. toggling simplified mode with a keybind)
-     * would be lost on restart. We call {@link ModConfigSpec#save()} afterwards to persist
-     * the change to the config file.
+     * Writes a config value once the spec is loaded, then flushes it to disk.
+     * {@link ModConfigSpec.ConfigValue#set} only updates the in-memory config, so an explicit
+     * {@link ModConfigSpec#save()} is needed for runtime changes to survive a restart.
      */
     private static <T> void safeSet(ModConfigSpec.ConfigValue<T> value, T newValue) {
         if (SPEC.isLoaded()) {

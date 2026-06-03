@@ -18,14 +18,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Renders visual tank sprites showing fuel and water levels
- * This is the "simplified" view that shows tank graphics instead of text
+ * The "simplified" overlay: tank sprites showing fuel and water levels instead of text.
  *
- * <p>The overlay uses a single canonical layout for every position (chest tank on the left, tool
- * tank on the right, item icons directly below, no edge padding). Corner/preset positioning is
- * handled purely by the resolved anchor (see {@link OverlayAnchor}), using the full composite size
- * so nothing clips. Keeping one layout means the live HUD and the editor preview render identically,
- * which is what keeps drag-positioning WYSIWYG for presets as well as custom positions.
+ * <p>Layout is the same for every position — chest tank left, tool tank right, item icons below,
+ * no edge padding. Placement is decided entirely by the resolved anchor (see {@link OverlayAnchor}),
+ * which uses the full composite size so corners do not clip. A single layout lets the HUD and the
+ * editor preview share one render path.
  */
 public class TankSpriteOverlay implements LayeredDraw.Layer {
 
@@ -77,10 +75,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
 
     /**
      * Renders the tank composite with its top-left at GUI coordinates {@code (gx, gy)}.
-     *
-     * <p>Public so the overlay editor can draw an identical preview at an arbitrary anchor — this is
-     * what guarantees the editor is WYSIWYG: the HUD and the editor run the exact same rendering, in
-     * the exact same (single) layout.
+     * Public so the editor can preview at an arbitrary anchor using the same render path as the HUD.
      */
     public void renderCompositeAt(GuiGraphics graphics, int gx, int gy, Player player) {
         float scaleFactor = (float) CommonConfig.getSpriteScaleFactor();
@@ -102,16 +97,14 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         int scaledX = (int) (gx / scaleFactor);
         int scaledY = (int) (gy / scaleFactor);
 
-        // Decide layout based on which slots actually hold a tank, so we never render a phantom
-        // tank for an empty/non-tank slot.
+        // Only show a tank for a slot that actually holds one.
         boolean chestIsTank = TankDataManager.isWearingFuelCapableItem(player) || TankDataManager.isWearingWaterCapableItem(player);
         boolean toolIsTank = TankDataManager.isHoldingFuelCapableItem(player) || TankDataManager.isHoldingWaterCapableItem(player);
 
         if (chestIsTank && toolIsTank) {
             renderDualTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem);
         } else {
-            // Exactly one tank present (the render() gate guarantees at least one). Show whichever
-            // slot is the tank; the held item is only drawn when it is itself a tank.
+            // render() guarantees at least one tank; show whichever slot has it.
             ItemStack subject = chestIsTank ? tankItem : toolItem;
             renderSingleTankDisplay(graphics, scaledX, scaledY, subject);
         }
@@ -151,8 +144,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
 
         renderTankLayers(graphics, scaledX, scaledY, tankU, tankV, fuelU, 0, waterU, FRAME_HEIGHT);
 
-        // Item icon directly below. Only the tank item's icon is drawn — a non-tank held item must
-        // not appear (tank-capable held items use the dual layout instead).
+        // Item icon directly below the tank. A held non-tank item is intentionally not drawn here.
         int itemY = scaledY + FRAME_HEIGHT;
         GuiGameElement.of(tankItem).at(scaledX, itemY, 450).render(graphics);
     }

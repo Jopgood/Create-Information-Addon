@@ -4,13 +4,9 @@ import com.jopgood.cfwinfo.common.config.CommonConfig;
 import com.jopgood.cfwinfo.common.config.CommonConfig.OverlayPosition;
 
 /**
- * Single source of truth for where the overlay is anchored on screen.
- *
- * <p>Everything works in GUI-scaled pixels — the same coordinate space that
- * {@code GuiGraphics#guiWidth()}/{@code guiHeight()} and {@code Screen} mouse events use. Because
- * the live HUD and the overlay editor both resolve their anchor through here (and render through
- * the same code), a position chosen in the editor renders in exactly the same place on the HUD —
- * no drift between "where you dropped it" and "where it shows up".
+ * Resolves where the overlay is anchored on screen, in GUI-scaled pixels — the coordinate space
+ * shared by {@code GuiGraphics#guiWidth()}/{@code guiHeight()} and {@code Screen} mouse events.
+ * The HUD and the editor both anchor through here so a position chosen in the editor matches the HUD.
  */
 public final class OverlayAnchor {
 
