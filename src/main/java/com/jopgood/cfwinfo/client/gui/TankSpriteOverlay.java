@@ -133,17 +133,20 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         int scaledX = (int) (x / scaleFactor);
         int scaledY = (int) (y / scaleFactor);
 
-        // Check if tool item is also a tank
+        // Decide layout based on which slots actually hold a tank, so we never render a phantom
+        // tank for an empty/non-tank slot.
+        boolean chestIsTank = TankDataManager.isWearingFuelCapableItem(player) || TankDataManager.isWearingWaterCapableItem(player);
         boolean toolIsTank = TankDataManager.isHoldingFuelCapableItem(player) || TankDataManager.isHoldingWaterCapableItem(player);
-        
-        if (toolIsTank) {
-            // Render two tank sprites with position-aware layout
-            renderDualTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem, 
+
+        if (chestIsTank && toolIsTank) {
+            // Both a worn tank and a held tank: render two tank sprites with position-aware layout
+            renderDualTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem,
                                 tankU, tankV, fuelU, fuelV, waterU, waterV, position);
         } else {
-            // Render single tank sprite with tool item beside
-            renderSingleTankDisplay(graphics, scaledX, scaledY, tankItem, toolItem,
-                                  tankU, tankV, fuelU, fuelV, waterU, waterV, position);
+            // Exactly one tank present (the render() gate guarantees at least one). Show whichever
+            // slot is the tank; the held item is only drawn when it is itself a tank.
+            ItemStack subject = chestIsTank ? tankItem : toolItem;
+            renderSingleTankDisplay(graphics, scaledX, scaledY, subject, position);
         }
         
         graphics.pose().popPose();
@@ -213,31 +216,40 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
     }
     
     private void renderSingleTankDisplay(GuiGraphics graphics, int scaledX, int scaledY,
-                                       ItemStack tankItem, ItemStack toolItem,
-                                       int tankU, int tankV, int fuelU, int fuelV, int waterU, int waterV,
+                                       ItemStack tankItem,
                                        CommonConfig.OverlayPosition position) {
         // Apply right side padding to prevent clipping
-        boolean isRightSide = position == CommonConfig.OverlayPosition.TOP_RIGHT || 
+        boolean isRightSide = position == CommonConfig.OverlayPosition.TOP_RIGHT ||
                              position == CommonConfig.OverlayPosition.BOTTOM_RIGHT;
         float scaleFactor = (float) CommonConfig.getSpriteScaleFactor();
         int paddingOffset = isRightSide ? (int)(16 / scaleFactor) : 0;
         int adjustedX = scaledX - paddingOffset;
-        
+
+        // Compute fuel/water frames from the tank we're actually showing (works for an empty tank too).
+        int fuelU = frameU(TankDataManager.getFuelLevel(tankItem));
+        int waterU = frameU(TankDataManager.getWaterLevel(tankItem));
+        int tankU = 0;
+        int tankV = 2 * FRAME_HEIGHT; // tank outline row
+
         // Render single tank sprite
-        renderTankLayers(graphics, adjustedX, scaledY, tankU, tankV, fuelU, fuelV, waterU, waterV);
-        
+        renderTankLayers(graphics, adjustedX, scaledY, tankU, tankV, fuelU, 0, waterU, FRAME_HEIGHT);
+
         // Determine item positioning based on overlay position
-        boolean itemsAbove = position == CommonConfig.OverlayPosition.BOTTOM_LEFT || 
+        boolean itemsAbove = position == CommonConfig.OverlayPosition.BOTTOM_LEFT ||
                             position == CommonConfig.OverlayPosition.BOTTOM_RIGHT;
         int itemY = itemsAbove ? scaledY - 16 : scaledY + 32;
-        
-        // Render tank item 
+
+        // Render only the tank item's icon. The held item is intentionally not drawn here — if the
+        // held item were a tank we'd be in renderDualTankDisplay, so anything else (e.g. bone meal)
+        // is irrelevant and must not appear next to the tank.
         GuiGameElement.of(tankItem).at(adjustedX, itemY, 450).render(graphics);
-        
-        // Render tool item beside tank item (if not empty)
-        if (!toolItem.isEmpty()) {
-            GuiGameElement.of(toolItem).at(adjustedX + 16, itemY, 450).render(graphics);
-        }
+    }
+
+    /** Maps a fuel/water level to its column U offset in the sprite sheet. */
+    private static int frameU(double level) {
+        int frameIndex = ((MAX_LEVEL - (int) Math.round(level)) * (TOTAL_FRAMES - 1)) / MAX_LEVEL;
+        frameIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, frameIndex));
+        return (frameIndex % FRAMES_PER_ROW) * FRAME_WIDTH;
     }
 
     private void renderTankLayers(GuiGraphics graphics, int scaledX, int scaledY, 
