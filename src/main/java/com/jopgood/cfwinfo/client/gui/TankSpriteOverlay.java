@@ -34,7 +34,6 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
     private static final int TOTAL_FRAMES = 18;
     private static final int SPRITE_SHEET_WIDTH = 270;
     private static final int SPRITE_SHEET_HEIGHT = 96;
-    private static final int MAX_LEVEL = 1600;
 
     /** Item icon size (in unscaled sprite units) drawn beneath the tank. */
     private static final int ICON_SIZE = 16;
@@ -133,10 +132,10 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         int tankU = 0;
         int tankV = 2 * FRAME_HEIGHT; // tank outline row
 
-        int chestFuelU = frameU(TankDataManager.getFuelLevel(tankItem));
-        int chestWaterU = frameU(TankDataManager.getWaterLevel(tankItem));
-        int toolFuelU = frameU(TankDataManager.getFuelLevel(toolItem));
-        int toolWaterU = frameU(TankDataManager.getWaterLevel(toolItem));
+        int chestFuelU = frameU(TankDataManager.getFuelFraction(tankItem));
+        int chestWaterU = frameU(TankDataManager.getWaterFraction(tankItem));
+        int toolFuelU = frameU(TankDataManager.getFuelFraction(toolItem));
+        int toolWaterU = frameU(TankDataManager.getWaterFraction(toolItem));
 
         int tank1X = scaledX;                 // Chest tank (left)
         int tank2X = scaledX + FRAME_WIDTH;   // Tool tank (right)
@@ -152,8 +151,8 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
     private void renderSingleTankDisplay(GuiGraphics graphics, int scaledX, int scaledY, ItemStack tankItem, int itemZ) {
         int tankU = 0;
         int tankV = 2 * FRAME_HEIGHT; // tank outline row
-        int fuelU = frameU(TankDataManager.getFuelLevel(tankItem));
-        int waterU = frameU(TankDataManager.getWaterLevel(tankItem));
+        int fuelU = frameU(TankDataManager.getFuelFraction(tankItem));
+        int waterU = frameU(TankDataManager.getWaterFraction(tankItem));
 
         renderTankLayers(graphics, scaledX, scaledY, tankU, tankV, fuelU, 0, waterU, FRAME_HEIGHT);
 
@@ -177,9 +176,10 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
                 SPRITE_SHEET_WIDTH, SPRITE_SHEET_HEIGHT);
     }
 
-    /** Maps a fuel/water level to its column U offset in the sprite sheet. */
-    private static int frameU(double level) {
-        int frameIndex = ((MAX_LEVEL - (int) Math.round(level)) * (TOTAL_FRAMES - 1)) / MAX_LEVEL;
+    /** Maps a fill fraction (0..1) to its column U offset in the sprite sheet (frame 0 = full). */
+    private static int frameU(double fraction) {
+        fraction = Math.max(0.0, Math.min(1.0, fraction));
+        int frameIndex = (int) Math.round((1.0 - fraction) * (TOTAL_FRAMES - 1));
         frameIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, frameIndex));
         return (frameIndex % FRAMES_PER_ROW) * FRAME_WIDTH;
     }
