@@ -16,16 +16,18 @@ public final class OverlayAnchor {
     private OverlayAnchor() {}
 
     /**
-     * Resolves the top-left anchor of the simplified overlay composite.
+     * Resolves the top-left anchor of an overlay's content box. Generic over the content: pass the
+     * sprite composite size or the tooltip box size, and {@code CUSTOM}/corner positions resolve the
+     * same way, so both overlays and the editor agree on a position.
      *
      * @param position the configured overlay position
      * @param guiW     GUI-scaled screen width
      * @param guiH     GUI-scaled screen height
-     * @param contentW rendered width of the whole composite in GUI pixels
-     * @param contentH rendered height of the whole composite in GUI pixels
+     * @param contentW rendered width of the content box in GUI pixels
+     * @param contentH rendered height of the content box in GUI pixels
      * @return {@code [x, y]} top-left anchor in GUI pixels
      */
-    public static int[] resolveSprite(OverlayPosition position, int guiW, int guiH, int contentW, int contentH) {
+    public static int[] resolve(OverlayPosition position, int guiW, int guiH, int contentW, int contentH) {
         return switch (position) {
             case TOP_LEFT -> new int[]{MARGIN, MARGIN};
             case TOP_RIGHT -> new int[]{guiW - contentW - MARGIN, MARGIN};

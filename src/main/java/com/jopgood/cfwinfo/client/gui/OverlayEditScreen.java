@@ -32,6 +32,11 @@ public class OverlayEditScreen extends Screen {
     private static final double MAX_SCALE = 5.0;
 
     private final TankSpriteOverlay previewOverlay = new TankSpriteOverlay();
+    private final TankTooltipOverlay previewTooltip = new TankTooltipOverlay();
+
+    // True when editing the detailed (text) overlay; false for the simplified sprite. The position
+    // config is shared, but the preview, sizing and controls follow whichever mode is active.
+    private boolean detailed;
 
     // What Save will persist: a preset enum, or CUSTOM once the overlay has been dragged.
     private OverlayPosition pendingPosition = OverlayPosition.TOP_LEFT;
@@ -55,6 +60,9 @@ public class OverlayEditScreen extends Screen {
 
     @Override
     protected void init() {
+        // Edit whichever overlay is currently active; the position config is shared between them.
+        detailed = !CommonConfig.isSimplifiedEnabled();
+
         // Remember the scale we opened with so Cancel/Escape can revert a live preview.
         originalScale = CommonConfig.getSpriteScaleFactor();
         committed = false;
@@ -63,7 +71,7 @@ public class OverlayEditScreen extends Screen {
         // Seed the working anchor from where the overlay currently renders, so it doesn't jump.
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player != null) {
-            int[] anchor = TankSpriteOverlay.currentAnchor(player, this.width, this.height);
+            int[] anchor = currentAnchor(player);
             anchorX = anchor[0];
             anchorY = anchor[1];
         }
@@ -74,12 +82,14 @@ public class OverlayEditScreen extends Screen {
         int presetY = bottom - 24;
         int sliderY = presetY - 24;
 
-        // Scale slider (with a tooltip clarifying it stacks on top of Minecraft's GUI Scale).
-        ScaleSlider slider = new ScaleSlider(cx - 110, sliderY, 220, 20, originalScale);
-        slider.setTooltip(Tooltip.create(Component.literal(
-                "Adjusts the tank sprite size. The overlay already scales with Minecraft's "
-                        + "GUI Scale setting; this is an extra multiplier on top of that.")));
-        addRenderableWidget(slider);
+        // Scale slider only applies to the sprite; the detailed text view does not use it.
+        if (!detailed) {
+            ScaleSlider slider = new ScaleSlider(cx - 110, sliderY, 220, 20, originalScale);
+            slider.setTooltip(Tooltip.create(Component.literal(
+                    "Adjusts the tank sprite size. The overlay already scales with Minecraft's "
+                            + "GUI Scale setting; this is an extra multiplier on top of that.")));
+            addRenderableWidget(slider);
+        }
 
         // Preset reset buttons.
         int presetW = 78;
@@ -109,9 +119,9 @@ public class OverlayEditScreen extends Screen {
     private void applyPreset(OverlayPosition position) {
         pendingPosition = position;
         Player player = this.minecraft != null ? this.minecraft.player : null;
-        int w = player != null ? TankSpriteOverlay.compositeWidthPx(player) : 0;
-        int h = TankSpriteOverlay.compositeHeightPx();
-        int[] anchor = OverlayAnchor.resolveSprite(position, this.width, this.height, w, h);
+        int w = player != null ? contentW(player) : 0;
+        int h = player != null ? contentH(player) : 0;
+        int[] anchor = OverlayAnchor.resolve(position, this.width, this.height, w, h);
         anchorX = anchor[0];
         anchorY = anchor[1];
         clampAnchor();
@@ -141,13 +151,17 @@ public class OverlayEditScreen extends Screen {
         // The overlay preview.
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player != null) {
-            int w = TankSpriteOverlay.compositeWidthPx(player);
-            int h = TankSpriteOverlay.compositeHeightPx();
+            int w = contentW(player);
+            int h = contentH(player);
 
             int border = dragging ? 0xFFFFE066 : 0x80FFFFFF;
             graphics.renderOutline(anchorX - 1, anchorY - 1, w + 2, h + 2, border);
 
-            previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player, PREVIEW_ITEM_Z);
+            if (detailed) {
+                previewTooltip.renderPreviewAt(graphics, anchorX, anchorY, player);
+            } else {
+                previewOverlay.renderCompositeAt(graphics, anchorX, anchorY, player, PREVIEW_ITEM_Z);
+            }
         }
 
         if (dragging) {
@@ -217,18 +231,34 @@ public class OverlayEditScreen extends Screen {
     private boolean isInsideOverlay(double mouseX, double mouseY) {
         Player player = this.minecraft != null ? this.minecraft.player : null;
         if (player == null) return false;
-        int w = TankSpriteOverlay.compositeWidthPx(player);
-        int h = TankSpriteOverlay.compositeHeightPx();
+        int w = contentW(player);
+        int h = contentH(player);
         return mouseX >= anchorX && mouseX <= anchorX + w && mouseY >= anchorY && mouseY <= anchorY + h;
     }
 
-    /** Keeps the composite fully on screen. */
+    /** Keeps the content box fully on screen. */
     private void clampAnchor() {
         Player player = this.minecraft != null ? this.minecraft.player : null;
-        int w = player != null ? TankSpriteOverlay.compositeWidthPx(player) : 0;
-        int h = TankSpriteOverlay.compositeHeightPx();
+        int w = player != null ? contentW(player) : 0;
+        int h = player != null ? contentH(player) : 0;
         anchorX = OverlayAnchor.clamp(anchorX, 0, Math.max(0, this.width - w));
         anchorY = OverlayAnchor.clamp(anchorY, 0, Math.max(0, this.height - h));
+    }
+
+    /** Width of the active overlay's content box in GUI pixels (sprite composite or tooltip box). */
+    private int contentW(Player player) {
+        return detailed ? TankTooltipOverlay.tooltipWidthPx(player) : TankSpriteOverlay.compositeWidthPx(player);
+    }
+
+    /** Height of the active overlay's content box in GUI pixels. */
+    private int contentH(Player player) {
+        return detailed ? TankTooltipOverlay.tooltipHeightPx(player) : TankSpriteOverlay.compositeHeightPx();
+    }
+
+    /** Where the active overlay currently anchors, so the editor opens without the preview jumping. */
+    private int[] currentAnchor(Player player) {
+        return detailed ? TankTooltipOverlay.currentAnchor(player, this.width, this.height)
+                        : TankSpriteOverlay.currentAnchor(player, this.width, this.height);
     }
 
     @Override
