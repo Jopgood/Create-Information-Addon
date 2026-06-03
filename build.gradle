@@ -135,8 +135,14 @@ dependencies {
     localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
     // Create
-    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")
+    // Create stopped publishing the ':slim' classifier from 6.0.11 onward, so we depend on the
+    // full jar instead. transitive = false keeps Create's own POM dependencies off our classpath;
+    // we declare the ones we actually need (Ponder, Flywheel, Registrate) explicitly below.
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
+    // Ponder moved Maven coordinates around 1.0.79: the old 'Ponder-NeoForge-<mc>' artifact
+    // stopped at 1.0.69, while Create 6.0.10+ requires 1.0.82+. Newer versions live under
+    // 'ponder-neoforge' with the MC version encoded in the version string (e.g. 1.0.85+mc1.21.1).
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}")
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
     implementation("com.tterrag.registrate:Registrate:${registrate_version}")

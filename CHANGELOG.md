@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-03
+### Fixed
+- **Overlay mode now persists across restarts**: toggling simplified/detailed mode (and the overlay on/off) is now saved to the config file. Previously the change only applied in-memory and reset to the default on the next launch.
+- **Held non-tank items no longer appear in the simplified overlay**: previously any item in your main hand (e.g. bone meal) was drawn next to the tank. The held item is now only shown when it is itself a tank.
+- **Empty tanks now display**: a worn tank with zero fuel and water no longer disappears. Tank capability is detected by item identity (known Create: Stuff 'N Additions items) as well as by stored contents, so empty/freshly-crafted tanks are still recognised.
+- **Fixed water-capability detection**: `isHoldingWaterCapableItem` was mistakenly checking fuel capability instead of water.
+- **Robust single/dual layout**: the overlay now picks its layout based on which slot actually holds a tank, avoiding a phantom empty tank when only a held item is a tank.
+
+### Changed
+- **Updated to Create 6.0.11**: Bumped Create `6.0.6-98` → `6.0.11-292` and refreshed the rest of the platform — NeoForge `21.1.206` → `21.1.233`, Ponder `1.0.59` → `1.0.85`, Flywheel `1.0.4` → `1.0.6`, Registrate `+62` → `+67`, JEI `19.22.1.316` → `19.27.0.340`
+- **Create dependency now uses the full jar**: Create stopped publishing the `:slim` classifier at 6.0.11, so the build depends on the full jar (still `transitive = false`). No change to the shipped mod.
+- **Ponder Maven coordinate change**: Create 6.0.10+ requires Ponder `1.0.82+`, which is published under the new `net.createmod.ponder:ponder-neoforge` artifact (the old `Ponder-NeoForge-1.21.1` artifact stopped at `1.0.69`). Updated the dependency accordingly.
+
 ## [1.6.1] - 2026-06-03
 ### Fixed
 - **Config Crash**: Prevent the "trying to get config values before these are loaded to memory" crash by guarding all config reads and writes behind a load check, falling back to default values until the config is loaded (reported on CurseForge)

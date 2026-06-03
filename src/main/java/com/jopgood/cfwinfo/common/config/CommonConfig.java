@@ -97,10 +97,16 @@ public class CommonConfig {
      * Writes a config value, but only once the config spec has been loaded. Setting
      * a value before load would throw the same "not loaded" error, so the write is
      * silently skipped until the config is available.
+     *
+     * <p>{@link ModConfigSpec.ConfigValue#set} only updates the in-memory config; it does
+     * not flush to disk, so runtime changes (e.g. toggling simplified mode with a keybind)
+     * would be lost on restart. We call {@link ModConfigSpec#save()} afterwards to persist
+     * the change to the config file.
      */
     private static <T> void safeSet(ModConfigSpec.ConfigValue<T> value, T newValue) {
         if (SPEC.isLoaded()) {
             value.set(newValue);
+            SPEC.save();
         }
     }
 
