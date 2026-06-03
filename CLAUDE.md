@@ -145,5 +145,11 @@ the IntelliJ run-config dialog — the generated config can be overwritten on Gr
 - On a fresh clone: `chmod +x gradlew`.
 - Create dependency uses `transitive = false` (we declare Ponder/Flywheel/Registrate explicitly) — don't "fix" that. Create published a `:slim` classifier through 6.0.10 but **dropped it at 6.0.11**, so from 6.0.11+ we depend on the full jar (no `:slim`).
 - Build output jar: `build/libs/cfwinfo-<version>.jar`. Bump `mod_version` before building.
-- There is a GitHub Actions workflow under `.github/workflows` and release notes in
-  `docs/releases`.
+- CI/CD lives under `.github/workflows`: `build.yml` (build on every push/PR + a
+  `release-readiness` gate that fails a PR if `mod_version` lacks a matching
+  `CHANGELOG.md` entry and `docs/releases/vX.md`), and `release.yml` (triggered by a
+  `v*` tag push — builds, then `Kir-Antipov/mc-publish` cuts the GitHub Release and
+  uploads to CurseForge + Modrinth). Full process and one-time secret setup
+  (`CF_API_TOKEN`, `MODRINTH_TOKEN`, `MODRINTH_PROJECT_ID` var) are in `RELEASING.md`.
+  Release notes are hand-authored in `docs/releases` (the chosen approach over
+  commit-driven generators like release-please).

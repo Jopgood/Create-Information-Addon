@@ -1,4 +1,4 @@
-name: Build
+name: CI
 
 on: [push, pull_request]
 
@@ -23,3 +23,39 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew build
+
+  # Gate that every version bump ships with release notes. Runs on PRs into main
+  # (and pushes to main) so you can never tag a version whose CHANGELOG / docs entry
+  # is missing. Between releases the version stays at the last released number, which
+  # already has notes, so this passes until you intentionally bump mod_version.
+  release-readiness:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify release notes exist for current mod_version
+        run: |
+          VERSION=$(grep -E '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          echo "mod_version = $VERSION"
+
+          NOTES="docs/releases/v${VERSION}.md"
+          FAIL=0
+
+          if [ ! -f "$NOTES" ]; then
+            echo "::error file=gradle.properties::Missing release notes file '$NOTES' for version $VERSION."
+            FAIL=1
+          fi
+
+          if ! grep -q "\[${VERSION}\]" CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::No '[$VERSION]' section found in CHANGELOG.md."
+            FAIL=1
+          fi
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo "Add the release notes before merging a version bump. See RELEASING.md."
+            exit 1
+          fi
+
+          echo "Release notes present for $VERSION."
