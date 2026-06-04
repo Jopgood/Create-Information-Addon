@@ -56,8 +56,8 @@ minecraft {
 }
 
 repositories {
-    maven { url = 'https://maven.createmod.net' }          // Create, catnip, Ponder
-    maven { url = 'https://maven.ithundxr.dev/snapshots' } // Registrate
+    maven { url = 'https://maven.createmod.net' }          // Create, catnip, Ponder, Flywheel
+    maven { url = 'https://maven.tterrag.com' }            // Registrate (1.20.1)
     maven { url = 'https://maven.blamejared.com' }         // JEI
     maven { url = 'https://api.modrinth.com/maven' }       // Create: Stuff 'N Additions
     maven { url = 'https://modmaven.dev' }                 // fallback
@@ -69,11 +69,16 @@ dependencies {
     // --- Create 6.x stack (Forge, 1.20.1). Create's POM declares no transitive deps,
     // so the stack is declared explicitly (mirrors the 1.21.1 build's approach). ---
     implementation "com.simibubi.create:create-1.20.1:${create_version}:all"
+    // NOTE: Create's own mc1.20.1 build declares no catnip_version. Whether the GUI helpers
+    // (GuiGameElement/Color) live in catnip or in com.simibubi.create.foundation on 1.20.1 is a
+    // workstream-G question resolved when porting the source; catnip is declared here because our
+    // (still-NeoForge) source imports net.createmod.catnip — drop it if the 1.20.1 API differs.
     implementation "net.createmod.catnip:Catnip-Forge-1.20.1:${catnip_version}"
     implementation "net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}"
-    // TODO: uncomment once flywheel_version / registrate_version are pinned in gradle.properties
-    // implementation "dev.engine_room.flywheel:flywheel-forge-1.20.1:${flywheel_version}"
-    // implementation "com.tterrag.registrate:Registrate:${registrate_version}"
+    // Flywheel: group dev.engine-room.flywheel (hyphen). API at compile, full jar at runtime.
+    compileOnly "dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}"
+    runtimeOnly "dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}"
+    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
 
     // --- JEI (optional integration): API at compile, full jar at runtime ---
     compileOnly "mezz.jei:jei-1.20.1-forge-api:${jei_version}"
