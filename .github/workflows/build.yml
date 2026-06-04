@@ -1,13 +1,11 @@
 name: CI
 
-# Run on PRs (covers branches) and on pushes to main (covers merges). A branch with an open
-# PR no longer double-runs, since the push event is scoped to main.
+# 1.20.1 Forge branch. Runs on PRs and on pushes to mc/1.20.1.
 on:
   push:
-    branches: [main]
+    branches: ['mc/1.20.1']
   pull_request:
 
-# Cancel an in-progress run if the same ref is pushed again.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -22,10 +20,10 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Setup JDK 21
+      - name: Setup JDK 17
         uses: actions/setup-java@v5
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Gradle
@@ -34,13 +32,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-  # Gate that every version bump ships with release notes. Runs on PRs into main
-  # (and pushes to main) so you can never tag a version whose CHANGELOG / docs entry
-  # is missing. Between releases the version stays at the last released number, which
-  # already has notes, so this passes until you intentionally bump mod_version.
+  # Gate that every version bump ships with release notes (shared with main: same mod_version,
+  # same CHANGELOG.md / docs/releases entries).
   release-readiness:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/mc/1.20.1'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
