@@ -79,7 +79,10 @@ dependencies {
     // Flywheel: group dev.engine-room.flywheel (hyphen). API at compile, full jar at runtime.
     compileOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}")
     runtimeOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}")
-    implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
+    // Registrate is a library (no Minecraft-targeting mixins), so it does NOT need fg.deobf.
+    // Wrapping it caused a split-package crash: the deobf jar put two module views of
+    // com.tterrag.registrate on the path (manifest name "Registrate" + filename "Registrate.MC1._20").
+    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
 
     // --- JEI (optional integration): API at compile, full (deobf) jar at runtime ---
     compileOnly "mezz.jei:jei-1.20.1-forge-api:${jei_version}"
