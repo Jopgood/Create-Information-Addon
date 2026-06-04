@@ -69,11 +69,9 @@ dependencies {
     // --- Create 6.x stack (Forge, 1.20.1). Create's POM declares no transitive deps,
     // so the stack is declared explicitly (mirrors the 1.21.1 build's approach). ---
     implementation "com.simibubi.create:create-1.20.1:${create_version}:all"
-    // NOTE: Create's own mc1.20.1 build declares no catnip_version. Whether the GUI helpers
-    // (GuiGameElement/Color) live in catnip or in com.simibubi.create.foundation on 1.20.1 is a
-    // workstream-G question resolved when porting the source; catnip is declared here because our
-    // (still-NeoForge) source imports net.createmod.catnip — drop it if the 1.20.1 API differs.
-    implementation "net.createmod.catnip:Catnip-Forge-1.20.1:${catnip_version}"
+    // catnip is bundled INSIDE Ponder on 1.20.1 (Create's own build declares no catnip_version).
+    // Declaring catnip separately causes a split-package crash at launch (net.createmod.catnip.command
+    // ends up in two modules). Ponder provides GuiGameElement, Color, the config classes, etc.
     implementation "net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}"
     // Flywheel: group dev.engine-room.flywheel (hyphen). API at compile, full jar at runtime.
     compileOnly "dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}"
