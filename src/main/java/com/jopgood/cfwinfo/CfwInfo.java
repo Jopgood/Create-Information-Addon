@@ -26,8 +26,8 @@ public class CfwInfo {
     public static final String MODID = "cfwinfo";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public CfwInfo() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public CfwInfo(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
         modEventBus.addListener(this::commonSetup);
 
         MinecraftForge.EVENT_BUS.register(this);
