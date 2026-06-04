@@ -1,36 +1,36 @@
 package com.jopgood.cfwinfo.common.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class CommonConfig {
 
     // Use the configure method to create both the config holder and spec together
     public static final CommonConfig INSTANCE;
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
     static {
-        Pair<CommonConfig, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(CommonConfig::new);
+        Pair<CommonConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
         INSTANCE = pair.getLeft();
         SPEC = pair.getRight();
     }
 
     // Config values as instance fields
-    public final ModConfigSpec.BooleanValue infoEnabled;
-    public final ModConfigSpec.BooleanValue simplifiedEnabled;
-    public final ModConfigSpec.BooleanValue messagesEnabled;
+    public final ForgeConfigSpec.BooleanValue infoEnabled;
+    public final ForgeConfigSpec.BooleanValue simplifiedEnabled;
+    public final ForgeConfigSpec.BooleanValue messagesEnabled;
 
     // Overlay Configs
-    public final ModConfigSpec.IntValue overlayOpacity;
-    public final ModConfigSpec.EnumValue<OverlayPosition> overlayPosition;
-    public final ModConfigSpec.DoubleValue spriteScaleFactor;
+    public final ForgeConfigSpec.IntValue overlayOpacity;
+    public final ForgeConfigSpec.EnumValue<OverlayPosition> overlayPosition;
+    public final ForgeConfigSpec.DoubleValue spriteScaleFactor;
 
     // Custom (dragged) overlay position, in GUI-scaled pixels. Only used when
     // overlayPosition == CUSTOM. Stored as the top-left anchor of the overlay.
-    public final ModConfigSpec.IntValue customX;
-    public final ModConfigSpec.IntValue customY;
+    public final ForgeConfigSpec.IntValue customX;
+    public final ForgeConfigSpec.IntValue customY;
 
-    private CommonConfig(ModConfigSpec.Builder builder) {
+    private CommonConfig(ForgeConfigSpec.Builder builder) {
         // Create a section for overlay settings
         builder.push("overlay");
 
@@ -102,7 +102,7 @@ public class CommonConfig {
      * Reads a config value, falling back to {@code fallback} until the spec is loaded.
      * NeoForge throws if a value is accessed before the config is bound to memory.
      */
-    private static <T> T safeGet(ModConfigSpec.ConfigValue<T> value, T fallback) {
+    private static <T> T safeGet(ForgeConfigSpec.ConfigValue<T> value, T fallback) {
         if (SPEC.isLoaded()) {
             return value.get();
         }
@@ -111,10 +111,10 @@ public class CommonConfig {
 
     /**
      * Writes a config value once the spec is loaded, then flushes it to disk.
-     * {@link ModConfigSpec.ConfigValue#set} only updates the in-memory config, so an explicit
-     * {@link ModConfigSpec#save()} is needed for runtime changes to survive a restart.
+     * {@link ForgeConfigSpec.ConfigValue#set} only updates the in-memory config, so an explicit
+     * {@link ForgeConfigSpec#save()} is needed for runtime changes to survive a restart.
      */
-    private static <T> void safeSet(ModConfigSpec.ConfigValue<T> value, T newValue) {
+    private static <T> void safeSet(ForgeConfigSpec.ConfigValue<T> value, T newValue) {
         if (SPEC.isLoaded()) {
             value.set(newValue);
             SPEC.save();

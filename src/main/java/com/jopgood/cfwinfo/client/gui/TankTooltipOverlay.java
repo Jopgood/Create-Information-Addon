@@ -7,33 +7,32 @@ import com.jopgood.cfwinfo.common.data.TankDataManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
-import net.createmod.catnip.theme.Color;
+import net.createmod.catnip.utility.theme.Color;
 import net.createmod.catnip.gui.element.GuiGameElement;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 import com.simibubi.create.infrastructure.config.CClient;
 
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 /**
  * Renders detailed text-based tank information overlay
  * This is the "full" view that requires goggles and shows detailed tooltip
  */
-public class TankTooltipOverlay implements LayeredDraw.Layer {
+public class TankTooltipOverlay implements IGuiOverlay {
 
     private static int hoverTicks = 0;
     private static boolean wasRenderEnabled = false;
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker deltaTracker) {
+    public void render(ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
@@ -66,9 +65,9 @@ public class TankTooltipOverlay implements LayeredDraw.Layer {
         wasRenderEnabled = true;
 
         // Get screen dimensions and timing
-        int width = graphics.guiWidth();
-        int height = graphics.guiHeight();
-        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
+        int width = screenWidth;
+        int height = screenHeight;
+        float partialTicks = partialTick;
 
         renderDetailedTooltip(graphics, partialTicks, width, height, player);
     }

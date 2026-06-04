@@ -146,7 +146,7 @@ public class OverlayEditScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // Light dim so the UI is readable but the world (and where the overlay sits on it) stays visible.
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
 
         // The overlay preview.
         Player player = this.minecraft != null ? this.minecraft.player : null;
@@ -178,7 +178,7 @@ public class OverlayEditScreen extends Screen {
 
     /** Background: a light dim rather than the default blur, so the world is visible while editing. */
     @Override
-    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(@NotNull GuiGraphics graphics) {
         graphics.fill(0, 0, this.width, this.height, 0x40000000);
     }
 

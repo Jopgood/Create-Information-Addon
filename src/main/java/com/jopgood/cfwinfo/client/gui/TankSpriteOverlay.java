@@ -5,17 +5,16 @@ import com.jopgood.cfwinfo.common.config.CommonConfig.OverlayPosition;
 import com.jopgood.cfwinfo.common.data.TankDataManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.createmod.catnip.gui.element.GuiGameElement;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 /**
  * The "simplified" overlay: tank sprites showing fuel and water levels instead of text.
@@ -25,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
  * which uses the full composite size so corners do not clip. A single layout lets the HUD and the
  * editor preview share one render path.
  */
-public class TankSpriteOverlay implements LayeredDraw.Layer {
+public class TankSpriteOverlay implements IGuiOverlay {
 
-    private static final ResourceLocation SPRITE = ResourceLocation.fromNamespaceAndPath("cfwinfo", "textures/gui/sprites/tank_sprite_sheet.png");
+    private static final ResourceLocation SPRITE = new ResourceLocation("cfwinfo", "textures/gui/sprites/tank_sprite_sheet.png");
     private static final int FRAME_WIDTH = 15;
     private static final int FRAME_HEIGHT = 32;
     private static final int FRAMES_PER_ROW = 18;
@@ -42,7 +41,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
 
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker deltaTracker) {
+    public void render(ForgeGui gui, GuiGraphics graphics, float partialTick, int screenWidth, int screenHeight) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
@@ -66,7 +65,7 @@ public class TankSpriteOverlay implements LayeredDraw.Layer {
         }
 
         OverlayPosition position = CommonConfig.getOverlayPosition();
-        int[] anchor = OverlayAnchor.resolve(position, graphics.guiWidth(), graphics.guiHeight(),
+        int[] anchor = OverlayAnchor.resolve(position, screenWidth, screenHeight,
                 compositeWidthPx(player), compositeHeightPx());
 
         renderCompositeAt(graphics, anchor[0], anchor[1], player);

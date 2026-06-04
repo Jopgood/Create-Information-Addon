@@ -2,7 +2,7 @@ package com.jopgood.cfwinfo.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.neoforged.jarjar.nio.util.Lazy;
+import net.minecraftforge.common.util.Lazy;
 import org.lwjgl.glfw.GLFW;
 
 public class KeyBinding {
