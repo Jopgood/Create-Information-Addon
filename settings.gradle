@@ -1,6 +1,9 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        // ForgeGradle + Librarian (Parchment) plugins for the 1.20.1 Forge build.
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://maven.parchmentmc.org' }
     }
 }
 
