@@ -68,21 +68,24 @@ dependencies {
 
     // --- Create 6.x stack (Forge, 1.20.1). Create's POM declares no transitive deps,
     // so the stack is declared explicitly (mirrors the 1.21.1 build's approach). ---
-    implementation "com.simibubi.create:create-1.20.1:${create_version}:all"
-    // catnip is bundled INSIDE Ponder on 1.20.1 (Create's own build declares no catnip_version).
-    // Declaring catnip separately causes a split-package crash at launch (net.createmod.catnip.command
-    // ends up in two modules). Ponder provides GuiGameElement, Color, the config classes, etc.
-    implementation "net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}"
+    // Create 6.x stack. These are production-mapped mod jars, so each must be wrapped in fg.deobf(...)
+    // or its mixins reference Minecraft via SRG names (e.g. f_91036_) and fail to apply against the dev
+    // (named) client. Compilation works without deobf because Create's own API names aren't obfuscated;
+    // the SRG mismatch only bites mixins at runtime.
+    implementation fg.deobf("com.simibubi.create:create-1.20.1:${create_version}:all")
+    // catnip is bundled INSIDE Ponder on 1.20.1 (Create's own build declares no catnip_version);
+    // declaring it separately causes a split-package crash. Ponder provides GuiGameElement, Color, etc.
+    implementation fg.deobf("net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}")
     // Flywheel: group dev.engine-room.flywheel (hyphen). API at compile, full jar at runtime.
-    compileOnly "dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}"
-    runtimeOnly "dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}"
-    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
+    compileOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}")
+    runtimeOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}")
+    implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
 
-    // --- JEI (optional integration): API at compile, full jar at runtime ---
+    // --- JEI (optional integration): API at compile, full (deobf) jar at runtime ---
     compileOnly "mezz.jei:jei-1.20.1-forge-api:${jei_version}"
-    runtimeOnly "mezz.jei:jei-1.20.1-forge:${jei_version}"
+    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${jei_version}")
 
-    // --- Create: Stuff 'N Additions (the items we read). Production jar -> fg.deobf. ---
+    // --- Create: Stuff 'N Additions (the items we read) ---
     implementation fg.deobf("maven.modrinth:create-stuff-additions:${csa_modrinth_version}")
 }
 
