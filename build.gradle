@@ -1,27 +1,18 @@
 // ============================================================================
-// 1.20.1 Forge backport (mc/1.20.1) — WORK IN PROGRESS build scaffold.
+// 1.20.1 Forge backport (mc/1.20.1) — ModDevGradle (legacy Forge) + Silk.
 //
-// This replaces the 1.21.1 ModDevGradle/NeoForge build with ForgeGradle for
-// Minecraft 1.20.1 / Forge / Java 17, against the Create 6.x (Forge) stack.
-//
-// Status: first-cut. The dependency block below resolves the verified
-// coordinates; FLYWHEEL_VERSION and REGISTRATE_VERSION are TODO in
-// gradle.properties and must be filled before `./gradlew build` will resolve.
-// fg.deobf(...) wrapping for the Create/CSA mod jars may need adjusting on the
-// first real build (createmod.net dev jars are usually already deobfuscated;
-// the Modrinth CSA jar is a production jar and is wrapped in fg.deobf()).
-//
-// Alternative considered: ModDevGradle "legacy" Forge support, which would keep
-// this file closer to main's. Chose ForgeGradle here as the well-trodden 1.20.1
-// path; revisit if MDG-legacy proves smoother.
+// This mirrors Create's own mc1.20.1 build toolchain (net.neoforged.moddev.legacyforge
+// + dev.ithundxr.silk), which is the same MDG family as the 1.21.1 main branch. Silk
+// provides the mod* configurations (modImplementation/modCompileOnly/modRuntimeOnly) that
+// deobfuscate mod dependencies AND remap their mixin refmaps correctly — which raw
+// ForgeGradle fg.deobf did not do for the Create 6.x stack (catnip-in-Ponder mixins).
 // ============================================================================
 
 plugins {
-    id 'eclipse'
-    id 'idea'
     id 'java-library'
-    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'idea'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.107'
+    id 'dev.ithundxr.silk' version '0.11.15'
 }
 
 version = mod_version
@@ -34,64 +25,56 @@ base {
 // Mojang ships Java 17 for 1.20.1.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-minecraft {
-    mappings channel: 'parchment', version: "${parchment_mappings_version}-${parchment_minecraft_version}"
-
-    // accessTransformers are auto-detected from META-INF/accesstransformer.cfg if present.
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'debug'
-            mods { "${mod_id}" { source sourceSets.main } }
-        }
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-    }
-}
-
 repositories {
-    maven { url = 'https://maven.createmod.net' }          // Create, catnip, Ponder, Flywheel
+    maven { url = 'https://maven.createmod.net' }          // Create, Ponder (bundles catnip), Flywheel
     maven { url = 'https://maven.tterrag.com' }            // Registrate (1.20.1)
     maven { url = 'https://maven.blamejared.com' }         // JEI
     maven { url = 'https://api.modrinth.com/maven' }       // Create: Stuff 'N Additions
     maven { url = 'https://modmaven.dev' }                 // fallback
 }
 
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+legacyForge {
+    version = "${minecraft_version}-${forge_version}"
 
-    // --- Create 6.x stack (Forge, 1.20.1). Create's POM declares no transitive deps,
-    // so the stack is declared explicitly (mirrors the 1.21.1 build's approach). ---
-    // Create 6.x stack. These are production-mapped mod jars, so each must be wrapped in fg.deobf(...)
-    // or its mixins reference Minecraft via SRG names (e.g. f_91036_) and fail to apply against the dev
-    // (named) client. Compilation works without deobf because Create's own API names aren't obfuscated;
-    // the SRG mismatch only bites mixins at runtime.
-    implementation fg.deobf("com.simibubi.create:create-1.20.1:${create_version}:all")
-    // catnip is bundled INSIDE Ponder on 1.20.1 (Create's own build declares no catnip_version);
-    // declaring it separately causes a split-package crash. Ponder provides GuiGameElement, Color, etc.
-    implementation fg.deobf("net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}")
-    // Flywheel: group dev.engine-room.flywheel (hyphen). API at compile, full jar at runtime.
-    compileOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}")
-    runtimeOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}")
-    // Registrate is a library (no Minecraft-targeting mixins), so it does NOT need fg.deobf.
-    // Wrapping it caused a split-package crash: the deobf jar put two module views of
-    // com.tterrag.registrate on the path (manifest name "Registrate" + filename "Registrate.MC1._20").
-    implementation "com.tterrag.registrate:Registrate:${registrate_version}"
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
 
-    // --- JEI (optional integration): API at compile, full (deobf) jar at runtime ---
-    compileOnly "mezz.jei:jei-1.20.1-forge-api:${jei_version}"
-    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:${jei_version}")
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
 
-    // --- Create: Stuff 'N Additions (the items we read) ---
-    implementation fg.deobf("maven.modrinth:create-stuff-additions:${csa_modrinth_version}")
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
 }
 
+dependencies {
+    // mod* configurations (from Silk) deobfuscate these mod jars and remap their mixin refmaps to
+    // the dev mappings. catnip is NOT declared — it is bundled inside Ponder on 1.20.1.
+    modImplementation "com.simibubi.create:create-1.20.1:${create_version}:all"
+    modImplementation "net.createmod.ponder:Ponder-Forge-1.20.1:${ponder_version}"
+    modCompileOnly "dev.engine-room.flywheel:flywheel-forge-api-1.20.1:${flywheel_version}"
+    modRuntimeOnly "dev.engine-room.flywheel:flywheel-forge-1.20.1:${flywheel_version}"
+    modImplementation "com.tterrag.registrate:Registrate:${registrate_version}"
+
+    // JEI (optional integration): API at compile, full jar at runtime.
+    modCompileOnly "mezz.jei:jei-1.20.1-forge-api:${jei_version}"
+    modRuntimeOnly "mezz.jei:jei-1.20.1-forge:${jei_version}"
+
+    // Create: Stuff 'N Additions (the items we read), pulled via the Modrinth maven.
+    modImplementation "maven.modrinth:create-stuff-additions:${csa_modrinth_version}"
+}
+
+// Expand ${...} tokens in the Forge mod metadata.
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
