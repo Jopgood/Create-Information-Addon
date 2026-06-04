@@ -132,8 +132,10 @@ the IntelliJ run-config dialog — the generated config can be overwritten on Gr
       `6.0.6-98`); check for further addon-relevant changes through 6.0.10.
     - Most version-sensitive code: HUD/overlay rendering (NeoForge GUI layering shifted
       across 1.21.x) and how tank contents are read off Create Stuff 'N Additions items.
-2. **Optional 1.20.1 backport.** Separate `mc/1.20.1` branch. 1.20.1 Create is Forge (NeoForge
-   on newer 6.x), uses **Java 17**, and APIs differ. Verify all deps exist on 1.20.1 first.
+2. **1.20.1 backport (planned).** Branch-per-version is the decided structure: `main` = 1.21.1/NeoForge,
+   `mc/1.20.1` = Forge/**Java 17**. 1.20.1 is the primary backport target (CSA is Forge-only there).
+   A spike must confirm CSA's 1.20.1 tank NBT keys + the Forge toolchain before porting. Full plan
+   (version matrix, tagging, release scaling, spike checklist) is in `docs/MULTIVERSION.md`.
 3. **Future MC versions** are blocked on Create — do not chase 26.1 until Create ports.
 
 ## Conventions & gotchas
