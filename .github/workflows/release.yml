@@ -6,7 +6,9 @@ name: Release
 on:
   push:
     tags:
-      - 'v*+mc1.20.1'
+      # '+' is a special char in GitHub's filter-pattern syntax, so it must be escaped (\+) to match
+      # a literal '+'. An unescaped 'v*+mc1.20.1' is a malformed pattern and invalidates the workflow.
+      - 'v*\+mc1.20.1'
 
 permissions:
   contents: write  # needed for mc-publish to create the GitHub Release
