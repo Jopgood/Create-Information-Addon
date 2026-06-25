@@ -1,11 +1,17 @@
 package com.jopgood.cfwinfo.common.data;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 import java.util.Set;
 
@@ -71,6 +77,21 @@ public class TankDataManager {
     /** Max width of a vanilla item durability bar; CS&A scales {@code tagStock} to this. */
     private static final int ITEM_BAR_MAX = 13;
 
+    /**
+     * CS&A 2.1.4+ stopped storing fuel/water as {@code tagFuel}/{@code tagWater} NBT and instead
+     * exposes a NeoForge {@link IFluidHandlerItem} on jetpacks/exoskeletons/drill (and tanks),
+     * holding fuel as {@code minecraft:lava} and water as {@code minecraft:water}. Fluids are
+     * classified by these CS&A tags so we track whatever CS&A counts as fuel/water. CS&A displays
+     * the fluid amount (mB) scaled by {@code MB_TO_LEVEL}.
+     */
+    private static final TagKey<Fluid> FUEL_FLUID =
+            TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(CSA_NAMESPACE, "fuel_fluid"));
+    private static final TagKey<Fluid> WATER_FLUID =
+            TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(CSA_NAMESPACE, "water_fluid"));
+
+    /** CS&A shows fuel/water "level" as the stored fluid amount in mB times this factor. */
+    private static final double MB_TO_LEVEL = 0.1;
+
     /** Registry path if {@code stack} is a CS&A item, otherwise {@code null}. */
     private static String csaPath(ItemStack stack) {
         if (stack.isEmpty()) return null;
@@ -93,6 +114,25 @@ public class TankDataManager {
      */
     private static double stockFraction(ItemStack stack) {
         return clamp01(stack.getItem().getBarWidth(stack) / (double) ITEM_BAR_MAX);
+    }
+
+    /**
+     * Summed {amount, capacity} in mB over the stack's fluid-handler tanks whose fluid matches
+     * {@code fluidTag}, or {@code null} if the stack has no fluid handler (e.g. pre-2.1.4 CS&A,
+     * which stored levels in NBT instead — callers fall back to the legacy NBT read).
+     */
+    private static double[] fluidTotals(ItemStack stack, TagKey<Fluid> fluidTag) {
+        IFluidHandlerItem handler = stack.getCapability(Capabilities.FluidHandler.ITEM);
+        if (handler == null) return null;
+        double amount = 0.0, capacity = 0.0;
+        for (int tank = 0; tank < handler.getTanks(); tank++) {
+            FluidStack fluid = handler.getFluidInTank(tank);
+            if (!fluid.isEmpty() && fluid.getFluid().builtInRegistryHolder().is(fluidTag)) {
+                amount += fluid.getAmount();
+                capacity += handler.getTankCapacity(tank);
+            }
+        }
+        return new double[]{amount, capacity};
     }
 
     /** True if the stack is a known CS&A item whose registry path is in {@code knownItems}. */
@@ -136,15 +176,19 @@ public class TankDataManager {
         return canItemStoreWater(chestplate);
     }
 
-    /** Raw stored fuel for {@code itemStack}: {@code tagStock} for fueling tanks, else {@code tagFuel}. */
+    /** Displayed fuel level: fluid amount (CS&A 2.1.4+) else {@code tagStock}/{@code tagFuel} NBT. */
     public static double getFuelLevel(ItemStack itemStack) {
+        double[] totals = fluidTotals(itemStack, FUEL_FLUID);
+        if (totals != null) return Math.round(totals[0] * MB_TO_LEVEL);
         String path = csaPath(itemStack);
         boolean stockTank = path != null && FUEL_STOCK_TANKS.contains(path);
         return readTag(itemStack, stockTank ? "tagStock" : "tagFuel");
     }
 
-    /** Raw stored water for {@code itemStack}: {@code tagStock} for filling tanks, else {@code tagWater}. */
+    /** Displayed water level: fluid amount (CS&A 2.1.4+) else {@code tagStock}/{@code tagWater} NBT. */
     public static double getWaterLevel(ItemStack itemStack) {
+        double[] totals = fluidTotals(itemStack, WATER_FLUID);
+        if (totals != null) return Math.round(totals[0] * MB_TO_LEVEL);
         String path = csaPath(itemStack);
         boolean stockTank = path != null && WATER_STOCK_TANKS.contains(path);
         return readTag(itemStack, stockTank ? "tagStock" : "tagWater");
@@ -153,6 +197,8 @@ public class TankDataManager {
     /** Fuel fill fraction (0..1) for the sprite bar. Tank items scale by their (configurable) capacity. */
     public static double getFuelFraction(ItemStack itemStack) {
         if (itemStack.isEmpty()) return 0.0;
+        double[] totals = fluidTotals(itemStack, FUEL_FLUID);
+        if (totals != null) return totals[1] > 0 ? clamp01(totals[0] / totals[1]) : 0.0;
         String path = csaPath(itemStack);
         if (path != null && FUEL_STOCK_TANKS.contains(path)) return stockFraction(itemStack);
         return clamp01(readTag(itemStack, "tagFuel") / TAG_LEVEL_CAPACITY);
@@ -163,6 +209,8 @@ public class TankDataManager {
         if (itemStack.isEmpty()) return 0.0;
         String path = csaPath(itemStack);
         if (CREATIVE_FILLING_TANK.equals(path)) return 1.0; // infinite tank: always full
+        double[] totals = fluidTotals(itemStack, WATER_FLUID);
+        if (totals != null) return totals[1] > 0 ? clamp01(totals[0] / totals[1]) : 0.0;
         if (path != null && WATER_STOCK_TANKS.contains(path)) return stockFraction(itemStack);
         return clamp01(readTag(itemStack, "tagWater") / TAG_LEVEL_CAPACITY);
     }

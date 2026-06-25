@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-06-25
+### Fixed
+- **Jetpacks and the hand drill no longer read as empty** on current Create: Stuff 'N Additions builds. CS&A 2.1.4 moved fuel/water out of item NBT (`tagFuel`/`tagWater`) and into a NeoForge fluid handler (fuel = lava, water = water), so the overlay drew every jetpack, exoskeleton and portable drill as empty regardless of their actual level ([#19](https://github.com/Jopgood/Create-Information-Addon/issues/19)). The overlay now reads the fluid handler directly and scales to each tank's reported capacity, while still falling back to the old NBT for pre-2.1.4 CS&A.
+
+### Changed
+- Bumped the bundled Create: Stuff 'N Additions test dependency to 2.1.4.a.
+
 ## [1.9.0] - 2026-06-04
 ### Added
 - **Position the detailed overlay, not just the sprite**: the in-game overlay editor (keybind `O`) now previews and positions whichever view you are using. In detailed (text) mode it shows the real tooltip while you place it, instead of only ever previewing the simplified sprite. The sprite-only scale slider is hidden in detailed mode.
