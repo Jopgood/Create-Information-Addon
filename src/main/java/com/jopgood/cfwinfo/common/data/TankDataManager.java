@@ -1,14 +1,13 @@
 package com.jopgood.cfwinfo.common.data;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
@@ -80,14 +79,13 @@ public class TankDataManager {
     /**
      * CS&A 2.1.4+ stopped storing fuel/water as {@code tagFuel}/{@code tagWater} NBT and instead
      * exposes a NeoForge {@link IFluidHandlerItem} on jetpacks/exoskeletons/drill (and tanks),
-     * holding fuel as {@code minecraft:lava} and water as {@code minecraft:water}. Fluids are
-     * classified by these CS&A tags so we track whatever CS&A counts as fuel/water. CS&A displays
-     * the fluid amount (mB) scaled by {@code MB_TO_LEVEL}.
+     * holding fuel as {@code minecraft:lava} and water as {@code minecraft:water}. We match these
+     * fluids directly — CS&A defines {@code fuel_fluid}/{@code water_fluid} fluid tags, but those
+     * datapack tags aren't reliably bound on the built-in fluid holders client-side, and CS&A's own
+     * code keys off {@link Fluids#LAVA}/{@link Fluids#WATER} anyway.
      */
-    private static final TagKey<Fluid> FUEL_FLUID =
-            TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(CSA_NAMESPACE, "fuel_fluid"));
-    private static final TagKey<Fluid> WATER_FLUID =
-            TagKey.create(Registries.FLUID, ResourceLocation.fromNamespaceAndPath(CSA_NAMESPACE, "water_fluid"));
+    private static final Fluid FUEL_FLUID = Fluids.LAVA;
+    private static final Fluid WATER_FLUID = Fluids.WATER;
 
     /** CS&A shows fuel/water "level" as the stored fluid amount in mB times this factor. */
     private static final double MB_TO_LEVEL = 0.1;
@@ -117,18 +115,18 @@ public class TankDataManager {
     }
 
     /**
-     * Summed {amount, capacity} in mB over the stack's fluid-handler tanks whose fluid matches
-     * {@code fluidTag}, or {@code null} if the stack has no fluid handler (e.g. pre-2.1.4 CS&A,
-     * which stored levels in NBT instead — callers fall back to the legacy NBT read).
+     * Summed {amount, capacity} in mB over the stack's fluid-handler tanks holding {@code fluid},
+     * or {@code null} if the stack has no fluid handler (e.g. pre-2.1.4 CS&A, which stored levels
+     * in NBT instead — callers fall back to the legacy NBT read).
      */
-    private static double[] fluidTotals(ItemStack stack, TagKey<Fluid> fluidTag) {
+    private static double[] fluidTotals(ItemStack stack, Fluid fluid) {
         IFluidHandlerItem handler = stack.getCapability(Capabilities.FluidHandler.ITEM);
         if (handler == null) return null;
         double amount = 0.0, capacity = 0.0;
         for (int tank = 0; tank < handler.getTanks(); tank++) {
-            FluidStack fluid = handler.getFluidInTank(tank);
-            if (!fluid.isEmpty() && fluid.getFluid().builtInRegistryHolder().is(fluidTag)) {
-                amount += fluid.getAmount();
+            FluidStack inTank = handler.getFluidInTank(tank);
+            if (!inTank.isEmpty() && inTank.getFluid() == fluid) {
+                amount += inTank.getAmount();
                 capacity += handler.getTankCapacity(tank);
             }
         }
